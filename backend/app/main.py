@@ -9,6 +9,7 @@ from app.database import base
 
 from app.api.safe_location import router as safe_location_router
 
+from app.api.location import router as location_router
 
 
 
@@ -23,6 +24,8 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(emergency_router)
 app.include_router(safe_location_router)
+app.include_router(location_router)
+# app.include_router(user_router)
 
 
 @app.get("/")
