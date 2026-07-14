@@ -1,9 +1,11 @@
 import DashboardLayout from "../components/layout/DashboardLayout";
-import DashboardStats from "../components/dashboard/DashboardStats";
+import DashboardStats from "../components/dashboard/SafeStats";
 import PredictionCard from "../components/dashboard/PredictionCard";
 import EmergencyStatus from "../components/dashboard/EmergencyStatus";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import RecentActivity from "../components/dashboard/RecentActivity";
+import UserInfoCard from "../components/dashboard/UserInfoCard";
+import WeatherCard from "../components/dashboard/WeatherCard";
 import LiveMap from "../components/map/LiveMap";
 
 export default function Dashboard() {
@@ -25,6 +27,9 @@ export default function Dashboard() {
         <div className="space-y-6">
 
           <PredictionCard />
+          <UserInfoCard />
+
+          <WeatherCard />
 
           <EmergencyStatus />
 

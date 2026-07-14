@@ -12,6 +12,7 @@ import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
 import NotFound from "../pages/NotFound";
 
+
 function AppRoutes() {
   return (
     <BrowserRouter>
