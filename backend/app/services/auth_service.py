@@ -48,3 +48,13 @@ def login_user(db: Session, email: str, password: str):
         "access_token": token,
         "token_type": "bearer"
     }
+
+def get_contacts(db: Session, current_user):
+
+    contacts = (
+        db.query(EmergencyContact)
+        .filter(EmergencyContact.user_id == current_user.id)
+        .all()
+    )
+
+    return contacts
