@@ -14,11 +14,11 @@ def register_user(db: Session, user: UserCreate):
         return None
 
     new_user = User(
-        full_name=user.full_name,
-        email=user.email,
-        phone_number=user.phone_number,
-        password=hash_password(user.password)
-    )
+    full_name=user.full_name,
+    email=user.email,
+    phone_number=user.phone_number,
+    password_hash=hash_password(user.password)
+)
 
     db.add(new_user)
     db.commit()
@@ -35,7 +35,7 @@ def login_user(db: Session, email: str, password: str):
     if user is None:
         return None
 
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.password_hash):
         return None
 
     token = create_access_token(

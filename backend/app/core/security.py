@@ -34,7 +34,4 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     )
 
 def hash_password(password: str):
-    print(password)
-    print(type(password))
-    print(len(password))
     return pwd_context.hash(password)

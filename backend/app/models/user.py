@@ -15,7 +15,7 @@ class User(Base):
 
     phone_number = Column(String(20), unique=True, nullable=False)
 
-    password = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
 
     is_active = Column(Boolean, default=True)
 
