@@ -18,14 +18,30 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     created_user = register_user(db, user)
 
     if created_user is None:
+
         raise HTTPException(
             status_code=400,
             detail="Email already registered"
         )
 
+    if created_user == "Guardian Code Required":
+
+        raise HTTPException(
+        status_code=400,
+        detail="Guardian Code is required"
+    )
+
+    if created_user == "Invalid Guardian Code":
+
+        raise HTTPException(
+            status_code=400,
+        detail="Invalid Guardian Code"
+    )
+
     return {
-        "message": "User registered successfully"
-    }
+    "message": "User registered successfully",
+    "guardian_code": created_user.guardian_code
+}
 
 
 @router.post("/login")

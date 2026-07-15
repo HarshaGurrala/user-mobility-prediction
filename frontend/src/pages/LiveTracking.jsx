@@ -1,51 +1,139 @@
-// function LiveTracking() {
-//   return <h1>Live Tracking</h1>;
-// }
-
-// export default LiveTracking;
 import DashboardLayout from "../components/layout/DashboardLayout";
 import LiveMap from "../components/map/LiveMap";
 import CurrentStatus from "../components/map/CurrentStatus";
 import TrackingStats from "../components/map/TrackingStats";
 
-export default function LiveTracking(){
+import useLocation from "../hooks/useLocation";
 
-return(
+import { useEffect } from "react";
+import { updateLocation } from "../services/locationService";
 
-<DashboardLayout>
+export default function LiveTracking() {
 
-<h1 className="text-5xl font-black text-white">
+  const { location, error } = useLocation();
 
-Live Tracking
+     useEffect(() => {
 
-</h1>
+  if (!location) return;
 
-<p className="text-slate-400 mt-2">
+  const sendLocation = async () => {
 
-Real-Time AI Location Monitoring
+    try {
 
-</p>
+      await updateLocation(location);
 
-<div className="grid lg:grid-cols-4 gap-6 mt-8">
+      console.log("Location saved");
 
-<div className="lg:col-span-3">
+    } catch (err) {
 
-<LiveMap/>
+      console.error(err);
 
-</div>
+    }
 
-<div>
+  };
 
-<CurrentStatus/>
+  sendLocation();
 
-</div>
+}, [location]);
 
-</div>
+  return (
 
-<TrackingStats/>
+    <DashboardLayout>
 
-</DashboardLayout>
+      <h1 className="text-5xl font-black text-white">
 
-)
+        Live Tracking
+
+      </h1>
+
+      <p className="text-slate-400 mt-2">
+
+        Real-Time AI Location Monitoring
+
+      </p>
+
+      {/* Temporary GPS Information */}
+
+      <div className="mt-6 bg-slate-900/70 border border-cyan-500/20 rounded-2xl p-5">
+
+        <h2 className="text-xl font-bold text-cyan-400 mb-4">
+
+          Current GPS Status
+
+        </h2>
+
+        {error && (
+
+          <p className="text-red-400">
+
+            {error}
+
+          </p>
+
+        )}
+
+        {!location ? (
+
+          <p className="text-yellow-400">
+
+            Waiting for GPS location...
+
+          </p>
+
+        ) : (
+
+          <div className="space-y-2 text-white">
+
+            <p>
+
+              <strong>Latitude:</strong> {location.latitude}
+
+            </p>
+
+            <p>
+
+              <strong>Longitude:</strong> {location.longitude}
+
+            </p>
+
+            <p>
+
+              <strong>Accuracy:</strong> {location.accuracy} meters
+
+            </p>
+
+            <p>
+
+              <strong>Speed:</strong> {location.speed} m/s
+
+            </p>
+
+          </div>
+
+        )}
+
+      </div>
+
+      <div className="grid lg:grid-cols-4 gap-6 mt-8">
+
+        <div className="lg:col-span-3">
+
+          <LiveMap />
+
+        </div>
+
+        <div>
+
+          <CurrentStatus />
+
+        </div>
+
+      </div>
+
+      <TrackingStats />
+
+    </DashboardLayout>
+
+  );
 
 }

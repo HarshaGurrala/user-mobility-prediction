@@ -67,8 +67,12 @@
 import AuthLayout from "../components/auth/AuthLayout";
 
 import RegisterForm from "../components/auth/RegisterForm";
-
+import { useState } from "react";
 export default function Register(){
+  
+  const [role, setRole] = useState("USER");
+
+  const [guardianCode, setGuardianCode] = useState("");
 
 return(
 

@@ -17,6 +17,10 @@ export default function RegisterForm() {
     confirmPassword: "",
   });
 
+  const [role, setRole] = useState("USER");
+
+    const [guardianCode, setGuardianCode] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -34,20 +38,36 @@ export default function RegisterForm() {
       return;
     }
 
-    try {
-      setLoading(true);
+   try {
+  setLoading(true);
 
-      await registerUser({
-        full_name: formData.full_name,
-        email: formData.email,
-        phone_number: formData.phone_number,
-        password: formData.password,
-      });
+  const response = await registerUser({
+    full_name: formData.full_name,
+    email: formData.email,
+    phone_number: formData.phone_number,
+    password: formData.password,
+    role: role,
+    guardian_code:
+      role === "USER"
+        ? guardianCode
+        : null
+  });
 
-      alert("Registration Successful!");
+  if (role === "GUARDIAN") {
 
-      navigate("/login");
-    } catch (error) {
+    alert(
+      `Registration Successful!\n\nYour Guardian Code:\n${response.guardian_code}\n\nShare this code with your child.`
+    );
+
+  } else {
+
+    alert("Registration Successful!");
+
+  }
+
+  navigate("/login");
+
+}catch (error) {
   console.error("Registration Error:", error);
 
   if (error.response) {
@@ -131,6 +151,80 @@ export default function RegisterForm() {
           />
         </div>
       </div>
+      {/* Role */}
+
+<div>
+
+<label className="text-slate-300 mb-2 block">
+  Account Type
+</label>
+
+
+<select
+  value={role}
+  onChange={(e)=>setRole(e.target.value)}
+  className="
+  w-full
+  bg-slate-1000/70
+  border
+  border-white/10
+  rounded-xl
+  p-4
+  text-white
+  "
+>
+
+<option value="USER">
+  Child / User
+</option>
+
+
+<option value="GUARDIAN">
+  Parent / Guardian
+</option>
+
+
+</select>
+
+</div>
+
+{
+role === "USER" && (
+
+<div>
+
+<label className="text-slate-300 mb-2 block">
+ Guardian Code
+</label>
+
+
+<input
+
+type="text"
+
+value={guardianCode}
+
+onChange={(e)=>setGuardianCode(e.target.value)}
+
+placeholder="Enter Parent Guardian Code"
+
+className="
+w-full
+bg-slate-900/70
+border
+border-white/10
+rounded-xl
+p-4
+text-white
+"
+
+/>
+
+</div>
+
+)
+}
+      
 
       {/* Password */}
 
