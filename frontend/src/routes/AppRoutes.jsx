@@ -12,6 +12,13 @@ import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
 import NotFound from "../pages/NotFound";
 import ProtectedRoute from "./ProtectedRoute";
+
+
+import GuardianDashboard from "../pages/GuardianDashboard";
+
+
+
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -88,6 +95,14 @@ function AppRoutes() {
   }
 />
 
+<Route
+  path="/guardian-dashboard"
+  element={
+    <ProtectedRoute>
+      <GuardianDashboard />
+    </ProtectedRoute>
+  }
+/>
 
 <Route
   path="/settings"

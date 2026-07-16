@@ -153,13 +153,13 @@ export default function LiveMap() {
           }}
         />
 
-        <Polyline
+        {/* <Polyline
           positions={path}
           pathOptions={{
             color: "#191599a9",
             weight: 5,
           }}
-        />
+        /> */}
 
       </MapContainer>
 

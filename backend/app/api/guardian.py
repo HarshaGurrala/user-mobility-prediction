@@ -7,6 +7,11 @@ from app.models.user import User
 from app.models.guardian_link import GuardianLink
 
 
+from app.services.guardian_service import (
+    get_my_children,
+    get_child_latest_location,
+)
+
 router = APIRouter(
     prefix="/guardian",
     tags=["Guardian"]
@@ -53,3 +58,50 @@ def link_child(
     return {
         "message": "Child linked successfully"
     }
+
+@router.get("/children")
+def my_children(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+
+    print("=" * 50)
+    print("Logged In User ID:", current_user.id)
+    print("Logged In Email:", current_user.email)
+    print("Logged In Role:", current_user.role)
+    print("=" * 50)
+
+    return get_my_children(
+        db,
+        current_user
+    )
+
+
+@router.get("/child/{child_id}/location")
+def child_location(
+    child_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+
+    children = get_my_children(
+        db,
+        current_user
+    )
+
+    child_ids = [
+        child.id
+        for child in children
+    ]
+
+    if child_id not in child_ids:
+
+        raise HTTPException(
+            status_code=403,
+            detail="Access Denied"
+        )
+
+    return get_child_latest_location(
+        db,
+        child_id
+    )
