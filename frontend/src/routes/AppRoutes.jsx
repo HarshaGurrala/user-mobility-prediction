@@ -13,10 +13,10 @@ import Settings from "../pages/Settings";
 import NotFound from "../pages/NotFound";
 import ProtectedRoute from "./ProtectedRoute";
 
-
+import SafeZones from "../pages/SafeZones";
 import GuardianDashboard from "../pages/GuardianDashboard";
 
-
+import ChildLiveTracking from "../pages/ChildLiveTracking";
 
 
 function AppRoutes() {
@@ -28,13 +28,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/live-tracking" element={<LiveTracking />} />
-        <Route path="/safe-locations" element={<SafeLocations />} />
-        <Route path="/emergency" element={<EmergencyContacts />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} /> */}
+       
 
         <Route
   path="/dashboard"
@@ -111,6 +105,20 @@ function AppRoutes() {
       <Settings />
     </ProtectedRoute>
   }
+/>
+
+      <Route
+    path="/child/:id"
+    element={
+        <ProtectedRoute>
+            <ChildLiveTracking />
+        </ProtectedRoute>
+    }
+/>
+
+<Route
+    path="/guardian/safe-zones"
+    element={<SafeZones />}
 />
 
         <Route path="*" element={<NotFound />} />

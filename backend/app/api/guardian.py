@@ -77,6 +77,12 @@ def my_children(
     )
 
 
+# @router.get("/child/{child_id}/location")
+# def child_location(
+#     child_id: int,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(get_current_user)
+# ):
 @router.get("/child/{child_id}/location")
 def child_location(
     child_id: int,
@@ -90,18 +96,58 @@ def child_location(
     )
 
     child_ids = [
-        child.id
+        child["id"]
         for child in children
     ]
 
     if child_id not in child_ids:
-
         raise HTTPException(
             status_code=403,
             detail="Access Denied"
         )
 
-    return get_child_latest_location(
+    location = get_child_latest_location(
         db,
         child_id
     )
+
+    if location is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Location not found"
+        )
+
+    child = db.query(User).filter(
+        User.id == child_id
+    ).first()
+
+    return {
+        "child": child.full_name,
+        "latitude": location.latitude,
+        "longitude": location.longitude,
+        "speed": location.speed,
+        "accuracy": location.accuracy,
+        "battery": 80
+    }
+
+    # children = get_my_children(
+    #     db,
+    #     current_user
+    # )
+
+    # child_ids = [
+    #     child["id"]
+    #     for child in children
+    # ]
+
+    # if child_id not in child_ids:
+
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="Access Denied"
+    #     )
+
+    # return get_child_latest_location(
+    #     db,
+    #     child_id
+    # )
