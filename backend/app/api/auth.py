@@ -46,12 +46,27 @@ router = APIRouter(
 
 
 #     return new_user
-@router.post("/register")
-def register(user: UserCreate):
-    return {
-        "message": "Register endpoint reached",
-        "email": user.email
-    }
+@router.post(
+    "/register",
+    response_model=UserResponse
+)
+def register(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+
+    new_user = create_user(
+        db,
+        user
+    )
+
+    if new_user is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    return new_user
 
 
 @router.post("/login")
@@ -60,25 +75,17 @@ def login(
     db: Session = Depends(get_db)
 ):
 
-    authenticated_user = authenticate_user(
+    result = authenticate_user(
         db,
         user.email,
         user.password
     )
 
-
-    if authenticated_user is None:
-
+    if result is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-
-    return {
-        "message": "Login successful",
-        "user_id": authenticated_user.id,
-        "role": authenticated_user.role,
-        "safe_path_id": authenticated_user.safe_path_id
-    }
+    return result
 

@@ -6,7 +6,7 @@ from app.schemas.user import UserCreate
 from app.core.security import hash_password, verify_password
 from app.utils.id_generator import generate_safe_path_id
 
-
+from app.core.security import create_access_token
 
 # def create_user(db: Session, user_data: UserCreate):
 
@@ -104,8 +104,19 @@ def authenticate_user(
 
     if not verify_password(password, user.password):
         return None
+    
+    token = create_access_token(
+    {
+        "sub": str(user.id),
+        "role": user.role
+    }
+)
 
-    return user
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user
+    }
 
     # user = db.query(User).filter(
     #     User.email == email

@@ -1,9 +1,44 @@
+# from fastapi import FastAPI
+
+# from app.database.database import Base, engine
+# from app.database import base
+
+# from app.api.auth import router as auth_router
+# from app.api.guardian import router as guardian_router
+# app.include_router(auth_router)
+# app.include_router(guardian_router)
+
+# app = FastAPI(
+#     title="User Mobility Prediction API",
+#     version="1.0.0"
+# )
+
+# Base.metadata.create_all(bind=engine)
+
+# app.include_router(auth_router)
+
+
+# @app.get("/")
+# def root():
+#     return {
+#         "message": "User Mobility Prediction API is running"
+#     }
+
+
 from fastapi import FastAPI
 
 from app.database.database import Base, engine
 from app.database import base
 
 from app.api.auth import router as auth_router
+from app.api.guardian import router as guardian_router
+from app.api.emergency import router as emergency_router
+from app.api.safe_location import router as safe_location_router
+from app.api.location import router as location_router
+from app.api.alert import router as alert_router
+from app.api.prediction import router as prediction_router
+
+from app.api.dashboard import router as dashboard_router
 
 app = FastAPI(
     title="User Mobility Prediction API",
@@ -13,11 +48,15 @@ app = FastAPI(
 Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router)
-
-
+app.include_router(guardian_router)
+app.include_router(emergency_router)
+app.include_router(safe_location_router)
+app.include_router(location_router)
+app.include_router(alert_router)
+app.include_router(prediction_router)
+app.include_router(dashboard_router)
 @app.get("/")
 def root():
     return {
         "message": "User Mobility Prediction API is running"
     }
-
