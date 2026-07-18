@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from app.models.location import Location
 from app.schemas.location import LocationCreate
 
+from app.services.location_check_service import (
+    check_safe_location,
+)
 
 
 def add_location(
@@ -24,8 +27,19 @@ def add_location(
 
     db.refresh(new_location)
 
-    return new_location
+    # Automatically check whether the location
+    # is inside a safe zone after saving it.
+    safety_status = check_safe_location(
+        db=db,
+        user_id=user_id,
+        latitude=location.latitude,
+        longitude=location.longitude
+    )
 
+    return {
+        "location": new_location,
+        "safety": safety_status
+    }
 
 
 def get_current_location(
@@ -39,7 +53,6 @@ def get_current_location(
         .order_by(Location.timestamp.desc())
         .first()
     )
-
 
 
 def get_location_history(

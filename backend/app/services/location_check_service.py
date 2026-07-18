@@ -2,13 +2,13 @@ from sqlalchemy.orm import Session
 
 from app.models.safe_location import SafeLocation
 from app.models.user_guardian_relationship import UserGuardianRelationship
+from app.models.alert import Alert
 
 from app.schemas.alert import AlertCreate
 
 from app.services.alert_service import create_alert
 
 from app.utils.location_utils import calculate_distance
-
 
 
 def check_safe_location(
@@ -26,7 +26,7 @@ def check_safe_location(
         .all()
     )
 
-
+    # Check if inside any safe location
     for location in safe_locations:
 
         distance = calculate_distance(
@@ -36,18 +36,18 @@ def check_safe_location(
             location.longitude
         )
 
-
         if distance <= location.radius:
 
             return {
                 "status": "SAFE",
                 "location": location.location_name,
-                "distance": distance
+                "distance": round(distance, 2),
+                "latitude": latitude,
+                "longitude": longitude,
+                "alert_created": False
             }
 
-
-
-    # Unknown location detected
+    # User is outside all safe locations
 
     guardians = (
         db.query(UserGuardianRelationship)
@@ -58,30 +58,44 @@ def check_safe_location(
         .all()
     )
 
+    alert_created = False
 
     for guardian in guardians:
 
-        alert = AlertCreate(
-
-            user_id=user_id,
-
-            guardian_id=guardian.guardian_id,
-
-            alert_type="UNKNOWN_LOCATION",
-
-            message="User entered an unknown location"
-
+        # Prevent duplicate UNKNOWN_LOCATION alerts
+        existing_alert = (
+            db.query(Alert)
+            .filter(
+                Alert.user_id == user_id,
+                Alert.guardian_id == guardian.guardian_id,
+                Alert.alert_type == "UNKNOWN_LOCATION",
+                Alert.is_read == False
+            )
+            .first()
         )
 
+        if existing_alert:
+            continue
+
+        alert = AlertCreate(
+            user_id=user_id,
+            guardian_id=guardian.guardian_id,
+            alert_type="UNKNOWN_LOCATION",
+            message="User entered an unknown location."
+        )
 
         create_alert(
             db,
             alert
         )
 
+        alert_created = True
 
     return {
         "status": "UNKNOWN",
         "location": None,
-        "alert_created": True
+        "distance": None,
+        "latitude": latitude,
+        "longitude": longitude,
+        "alert_created": alert_created
     }
