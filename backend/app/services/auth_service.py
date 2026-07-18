@@ -2,109 +2,125 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.schemas.user import UserCreate
-from app.core.security import (
-    hash_password,
-    verify_password,
-    create_access_token,
-)
-from app.utils.generate_guardian_code import generate_guardian_code
-from app.models.guardian_link import GuardianLink
 
-def register_user(db: Session, user: UserCreate):
+from app.core.security import hash_password, verify_password
+from app.utils.id_generator import generate_safe_path_id
 
-    existing_user = (
-        db.query(User)
-        .filter(User.email == user.email)
-        .first()
-    )
+
+
+# def create_user(db: Session, user_data: UserCreate):
+
+#     print("=== CREATE USER CALLED ===")
+#     print(user_data)
+
+#     existing_user = db.query(User).filter(
+#         User.email == user_data.email
+#     ).first()
+
+#     if existing_user:
+#         print("User already exists")
+#         return None
+
+#     hashed = hash_password(user_data.password)
+#     print("Hash created successfully")
+
+#     new_user = User(
+#         full_name=user_data.full_name,
+#         email=user_data.email,
+#         phone_number=user_data.phone_number,
+#         password=hashed,
+#         role=user_data.role,
+#         safe_path_id=generate_safe_path_id()
+#     )
+
+#     db.add(new_user)
+#     db.commit()
+#     db.refresh(new_user)
+
+#     print("User saved successfully")
+
+#     return new_user
+def create_user(db: Session, user_data: UserCreate):
+
+    print("========== CREATE USER ==========")
+    print("Email:", user_data.email)
+    print("Password:", user_data.password)
+    print("Password Length:", len(user_data.password))
+
+    existing_user = db.query(User).filter(
+        User.email == user_data.email
+    ).first()
 
     if existing_user:
+        print("User already exists")
         return None
 
+    hashed_password = hash_password(user_data.password)
 
-    guardian = None
-    guardian_code = None
-
-
-    # If Guardian registers
-    if user.role == "GUARDIAN":
-
-        guardian_code = generate_guardian_code()
-
-
-    # If Child registers
-    elif user.role == "USER":
-
-        if not user.guardian_code:
-            return "Guardian Code Required"
-
-        guardian = (
-            db.query(User)
-            .filter(
-                User.guardian_code == user.guardian_code,
-                User.role == "GUARDIAN"
-            )
-            .first()
-        )
-
-        if guardian is None:
-            return "Invalid Guardian Code"
-
+    print("Hash created successfully")
+    print(hashed_password)
 
     new_user = User(
-
-        full_name=user.full_name,
-
-        email=user.email,
-
-        phone_number=user.phone_number,
-
-        password_hash=hash_password(user.password),
-
-        role=user.role,
-
-        guardian_code=guardian_code
-
+        full_name=user_data.full_name,
+        email=user_data.email,
+        phone_number=user_data.phone_number,
+        password=hashed_password,
+        role=user_data.role,
+        safe_path_id=generate_safe_path_id()
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-
-    # Create Guardian Link
-    if guardian:
-
-        link = GuardianLink(
-
-            guardian_user_id=guardian.id,
-
-            child_user_id=new_user.id
-
-        )
-
-        db.add(link)
-        db.commit()
-
+    print("User saved successfully")
 
     return new_user
 
+# def authenticate_user(
+#     db: Session,
+#     email: str,
+#     password: str
+# ):
+def authenticate_user(
+    db: Session,
+    email: str,
+    password: str
+):
 
-def login_user(db: Session, email: str, password: str):
+    print("INPUT PASSWORD:", password)
+    print("PASSWORD LENGTH:", len(password))
 
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(
+        User.email == email
+    ).first()
 
-    if user is None:
+    if not user:
+        print("User not found")
         return None
 
-    if not verify_password(password, user.password_hash):
+    print("HASH FROM DB:", user.password)
+    print("HASH LENGTH:", len(user.password))
+
+    if not verify_password(password, user.password):
         return None
 
-    token = create_access_token(
-        data={"sub": user.email}
-    )
+    return user
 
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-    }
+    # user = db.query(User).filter(
+    #     User.email == email
+    # ).first()
+
+
+    # if not user:
+    #     return None
+
+
+    # if not verify_password(
+    #     password,
+    #     user.password
+    # ):
+    #     return None
+
+
+    # return user

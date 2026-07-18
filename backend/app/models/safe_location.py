@@ -1,25 +1,70 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+    ForeignKey
+)
+
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from app.database.database import Base
 
 
+
 class SafeLocation(Base):
+
     __tablename__ = "safe_locations"
 
-    id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    location_name = Column(String(100), nullable=False)
 
-    latitude = Column(Float, nullable=False)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False
+    )
 
-    longitude = Column(Float, nullable=False)
 
-    radius = Column(Integer, default=100)
+    location_name = Column(
+        String(100),
+        nullable=False
+    )
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User")
+    latitude = Column(
+        Float,
+        nullable=False
+    )
+
+
+    longitude = Column(
+        Float,
+        nullable=False
+    )
+
+
+    radius = Column(
+        Float,
+        default=100
+    )
+    # meters
+
+
+    created_at = Column(
+        DateTime,
+        server_default=func.now()
+    )
+
+
+    user = relationship(
+        "User",
+        back_populates="safe_locations"
+    )

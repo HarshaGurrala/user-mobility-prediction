@@ -1,4 +1,12 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+    ForeignKey
+)
+
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -6,9 +14,16 @@ from app.database.database import Base
 
 
 class Prediction(Base):
+
     __tablename__ = "predictions"
 
-    id = Column(Integer, primary_key=True)
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
 
     user_id = Column(
         Integer,
@@ -16,19 +31,26 @@ class Prediction(Base):
         nullable=False
     )
 
-    predicted_place = Column(String(150))
 
-    confidence = Column(Float)
+    predicted_location = Column(
+        String(255),
+        nullable=False
+    )
 
-    eta = Column(Integer)
 
-    latitude = Column(Float)
+    confidence = Column(
+        Float,
+        nullable=False
+    )
 
-    longitude = Column(Float)
 
     created_at = Column(
-        DateTime(timezone=True),
+        DateTime,
         server_default=func.now()
     )
 
-    user = relationship("User")
+
+    user = relationship(
+        "User",
+        backref="predictions"
+    )

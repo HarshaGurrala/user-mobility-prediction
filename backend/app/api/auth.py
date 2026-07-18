@@ -1,10 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.schemas.user import UserCreate
-from app.services.auth_service import register_user, login_user
+
+from app.schemas.user import (
+    UserCreate,
+    UserLogin,
+    UserResponse
+)
+
+from app.services.auth_service import (
+    create_user,
+    authenticate_user
+)
+
 
 router = APIRouter(
     prefix="/auth",
@@ -12,54 +21,64 @@ router = APIRouter(
 )
 
 
+
+@router.post(
+    "/register",
+    response_model=UserResponse
+)
+# def register(
+#     user: UserCreate,
+#     db: Session = Depends(get_db)
+# ):
+
+#     new_user = create_user(
+#         db,
+#         user
+#     )
+
+
+#     if new_user is None:
+
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Email already registered"
+#         )
+
+
+#     return new_user
 @router.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
-
-    created_user = register_user(db, user)
-
-    if created_user is None:
-
-        raise HTTPException(
-            status_code=400,
-            detail="Email already registered"
-        )
-
-    if created_user == "Guardian Code Required":
-
-        raise HTTPException(
-        status_code=400,
-        detail="Guardian Code is required"
-    )
-
-    if created_user == "Invalid Guardian Code":
-
-        raise HTTPException(
-            status_code=400,
-        detail="Invalid Guardian Code"
-    )
-
+def register(user: UserCreate):
     return {
-    "message": "User registered successfully",
-    "guardian_code": created_user.guardian_code
-}
+        "message": "Register endpoint reached",
+        "email": user.email
+    }
 
 
 @router.post("/login")
 def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    user: UserLogin,
     db: Session = Depends(get_db)
 ):
 
-    token = login_user(
+    authenticated_user = authenticate_user(
         db,
-        form_data.username,   # email goes here
-        form_data.password
+        user.email,
+        user.password
     )
 
-    if token is None:
+
+    if authenticated_user is None:
+
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-    return token
+
+    return {
+        "message": "Login successful",
+        "user_id": authenticated_user.id,
+        "role": authenticated_user.role,
+        "safe_path_id": authenticated_user.safe_path_id
+    }
+
