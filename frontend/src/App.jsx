@@ -25,6 +25,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Landing from "./pages/Landing/Landing";
 
 
 // Temporary dashboard
@@ -70,6 +71,15 @@ return (
 
 <Route
 
+path="/"
+
+element={<Landing />}
+
+/>
+
+
+<Route
+
 path="/login"
 
 element={<Login />}
@@ -104,7 +114,7 @@ element={
 
 path="*"
 
-element={<Login/>}
+element={<Landing />}
 
 />
 

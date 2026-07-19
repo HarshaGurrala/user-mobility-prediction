@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export default function CTA() {
+  const navigate = useNavigate();
   return (
     <section className="bg-[#050505] py-36">
 
@@ -49,16 +51,18 @@ export default function CTA() {
 
             <div className="mt-14 flex justify-center gap-6">
 
-              <button className="rounded-full bg-white px-10 py-4 text-lg font-semibold text-black transition hover:scale-105">
-
-                Start Free
-
+              <button
+                className="rounded-full bg-white px-10 py-4 text-lg font-semibold text-black transition hover:scale-105"
+                onClick={() => navigate("/register")}
+              >
+                Create Account
               </button>
 
-              <button className="rounded-full border border-white/10 bg-white/5 px-10 py-4 text-lg text-white backdrop-blur-xl transition hover:bg-white/10">
-
-                Watch Demo
-
+              <button
+                className="rounded-full border border-white/10 bg-white/5 px-10 py-4 text-lg text-white backdrop-blur-xl transition hover:bg-white/10"
+                onClick={() => navigate("/login")}
+              >
+                Login
               </button>
 
             </div>
