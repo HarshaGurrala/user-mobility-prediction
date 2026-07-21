@@ -13,7 +13,7 @@ from app.api.alert import router as alert_router
 from app.api.prediction import router as prediction_router
 from app.api.dashboard import router as dashboard_router
 
-
+from app.api.user import router as user_router
 
 app = FastAPI(
     title="User Mobility Prediction API",
@@ -52,6 +52,8 @@ Base.metadata.create_all(bind=engine)
 # Routers
 
 app.include_router(auth_router)
+
+app.include_router(user_router)
 
 app.include_router(guardian_router)
 

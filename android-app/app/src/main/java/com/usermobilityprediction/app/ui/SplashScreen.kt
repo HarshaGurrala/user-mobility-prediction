@@ -19,9 +19,10 @@ fun SplashScreen(navController: NavController, tokenManager: TokenManager) {
     LaunchedEffect(Unit) {
         val token = tokenManager.getToken()
         if (token != null) {
-            navController.navigate("home") { popUpTo("splash") { inclusive = true } }
+            // navigate into the full app shell (bottom navigation)
+            navController.navigate("app") { popUpTo("splash") { inclusive = true } }
         } else {
-            navController.navigate("login") { popUpTo("splash") { inclusive = true } }
+            navController.navigate("landing") { popUpTo("splash") { inclusive = true } }
         }
     }
 }

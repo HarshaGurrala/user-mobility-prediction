@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-
+from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.user import (
     UserCreate,
     UserLogin,
@@ -103,5 +103,28 @@ def login(
         )
 
 
+
+    return result
+
+
+
+@router.post("/token")
+def swagger_login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+
+    result = authenticate_user(
+        db,
+        form_data.username,
+        form_data.password
+    )
+
+    if result is None:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
 
     return result

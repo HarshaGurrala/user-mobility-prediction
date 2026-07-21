@@ -18,6 +18,10 @@ def send_request(
     if not user:
         return None
 
+        # Receiver must be USER only
+    if user.role != "USER":
+        return "INVALID_ROLE"
+
     # Prevent self-connection
     if guardian_id == user.id:
         return "SELF"

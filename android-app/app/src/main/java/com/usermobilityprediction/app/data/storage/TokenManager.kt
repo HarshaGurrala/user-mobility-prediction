@@ -1,28 +1,53 @@
 package com.usermobilityprediction.app.data.storage
 
 import android.content.Context
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
-class TokenManager(context: Context) {
-    private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-    private val prefs = EncryptedSharedPreferences.create(
-        "auth_prefs",
-        masterKeyAlias,
-        context,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+private val Context.dataStore by preferencesDataStore(
+    name = "auth_preferences"
+)
 
-    fun saveToken(token: String) {
-        prefs.edit().putString("access_token", token).apply()
+class TokenManager(
+    private val context: Context
+) {
+
+    companion object {
+        private val ACCESS_TOKEN =
+            stringPreferencesKey("access_token")
     }
 
-    fun getToken(): String? {
-        return prefs.getString("access_token", null)
+    val token: Flow<String?> =
+        context.dataStore.data.map {
+            it[ACCESS_TOKEN]
+        }
+
+    suspend fun saveToken(
+        token: String
+    ) {
+        context.dataStore.edit {
+            it[ACCESS_TOKEN] = token
+        }
     }
 
-    fun clear() {
-        prefs.edit().clear().apply()
+    suspend fun clearToken() {
+        context.dataStore.edit {
+            it.remove(ACCESS_TOKEN)
+        }
     }
+
+    fun getToken(): String? =
+        runBlocking {
+            token.firstOrNull()
+        }
+
+    fun clear() =
+        runBlocking {
+            clearToken()
+        }
 }

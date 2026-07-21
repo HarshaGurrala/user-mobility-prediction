@@ -1,87 +1,287 @@
 package com.usermobilityprediction.app.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Alignment
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.usermobilityprediction.app.ui.components.InfoCard
-import com.usermobilityprediction.app.ui.components.StatusChip
+import com.usermobilityprediction.app.ui.components.dashboard.AIMobilityOverviewCard
 import com.usermobilityprediction.app.viewmodel.HomeViewModel
-import com.usermobilityprediction.app.ui.components.PrimaryGradientButton
+import com.usermobilityprediction.app.ui.components.dashboard.ProfileStatusCard
+import com.usermobilityprediction.app.ui.components.dashboard.SafeZonePremiumPanel
+import com.usermobilityprediction.app.ui.components.dashboard.AIPredictionDetailsCard
+import com.usermobilityprediction.app.ui.components.dashboard.CurrentLocationIntelligenceCard
+import com.usermobilityprediction.app.ui.components.dashboard.GuardianSafetyCenter
+import com.usermobilityprediction.app.ui.components.dashboard.EmergencyReadinessPanel
+
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.usermobilityprediction.app.viewmodel.LocationViewModel
+import com.usermobilityprediction.app.viewmodel.LocationViewModelFactory
+
+
+
+
 
 @Composable
-fun HomeDashboardScreen(homeViewModel: HomeViewModel = viewModel(), navController: NavController? = null) {
-    val locations by homeViewModel.locations.collectAsState()
-    val predictions by homeViewModel.predictions.collectAsState()
-    val isLoading by homeViewModel.isLoading.collectAsState()
+fun HomeDashboardScreen(
+    homeViewModel: HomeViewModel = viewModel(),
+    navController: NavController? = null
 
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        return
+) {
+    val context = LocalContext.current
+
+    val locationViewModel: LocationViewModel = viewModel(
+        factory = LocationViewModelFactory(context)
+    )
+
+    val currentLocation by locationViewModel.currentLocation.collectAsState()
+
+
+    LaunchedEffect(Unit) {
+        locationViewModel.startLocationTracking()
     }
 
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Welcome back", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.onBackground)
-                StatusChip("Safe")
-            }
-        }
+    val locations by homeViewModel.locations.collectAsState()
+    val predictions by homeViewModel.predictions.collectAsState()
 
-        item {
-            InfoCard(title = "Live AI Prediction", subtitle = "Where you might go next")
-        }
 
-        item {
-            if (predictions.isEmpty()) {
-                Text("No predictions yet", style = MaterialTheme.typography.bodyLarge)
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    predictions.forEach { p ->
-                        Card(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(p.placeName, style = MaterialTheme.typography.titleLarge)
-                                Text("Accuracy: ${p.confidence}% • ETA ${p.eta}", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
+    LaunchedEffect(Unit) {
+        locationViewModel.startLocationTracking()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF050505))
+    ) {
+
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+
+
+            item {
+
+                Spacer(
+                    modifier = Modifier.height(30.dp)
+                )
+
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+
+                    Column {
+
+                        Text(
+                            text = "Welcome back",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+
+
+                        Text(
+                            text = "Mobility Guardian",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
+
+
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = null,
+                        tint = Color(0xFF4DB8FF),
+                        modifier = Modifier.size(30.dp)
+                    )
                 }
             }
-        }
 
-        item {
-            InfoCard(title = "Quick Actions", subtitle = "Emergency, Safe Zone, Share")
-            Spacer(Modifier.height(8.dp))
-            PrimaryGradientButton(text = "Send Emergency Alert", onClick = { navController?.navigate("emergency") })
-        }
 
-        item {
-            Text("Recent locations", style = MaterialTheme.typography.titleLarge)
-        }
+            item {
 
-        if (locations.isEmpty()) {
-            item { Text("No recent locations", style = MaterialTheme.typography.bodyLarge) }
-        } else {
-            items(locations) { loc ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(loc.label ?: "Location", style = MaterialTheme.typography.titleLarge)
-                        Text("${loc.latitude}, ${loc.longitude}", style = MaterialTheme.typography.bodySmall)
-                    }
+                AIMobilityOverviewCard()
+            }
+
+            item {
+
+                ProfileStatusCard()
+            }
+
+
+            item {
+
+                CurrentLocationIntelligenceCard(
+                    locationName = currentLocation?.locationName,
+                    latitude = currentLocation?.latitude,
+                    longitude = currentLocation?.longitude,
+                    timestamp = currentLocation?.timestamp
+                )
+            }
+
+
+            item {
+
+                DashboardGlassCard(
+                    icon = Icons.Outlined.Security,
+                    title = "Guardian Protection",
+                    value = "Active"
+                )
+            }
+
+
+            item {
+
+                AIPredictionDetailsCard(
+                    destination =
+                        if (predictions.isNotEmpty())
+                            predictions.first().placeName
+                        else
+                            "Analyzing movement pattern",
+
+                    confidence =
+                        if (predictions.isNotEmpty())
+                            predictions.first().confidence.toInt()
+                        else
+                            0,
+
+                    eta =
+                        if (predictions.isNotEmpty())
+                            predictions.first().eta
+                        else
+                            "Calculating..."
+                )
+            }
+
+
+
+            item {
+
+                SafeZonePremiumPanel()
+                GuardianSafetyCenter()
+            }
+
+
+            item {
+                EmergencyReadinessPanel()
+
+
+                Button(
+                    onClick = {
+
+                        navController?.navigate("emergency")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(58.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE53935)
+                    )
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Outlined.Warning,
+                        contentDescription = null
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
+
+                    Text(
+                        text = "Emergency Alert",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
+
+
+            item {
+
+                Spacer(
+                    modifier = Modifier.height(40.dp)
+                )
+            }
         }
-        
+    }
+}
+
+
+
+@Composable
+private fun DashboardGlassCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    value: String
+) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        Color(0x22FFFFFF),
+                        Color(0x1100A8FF)
+                    )
+                ),
+                shape = RoundedCornerShape(28.dp)
+            )
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color(0xFF4DB8FF),
+            modifier = Modifier.size(32.dp)
+        )
+
+
+        Spacer(
+            modifier = Modifier.width(16.dp)
+        )
+
+
+        Column {
+
+            Text(
+                text = title,
+                color = Color.Gray,
+                fontSize = 13.sp
+            )
+
+
+            Text(
+                text = value,
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

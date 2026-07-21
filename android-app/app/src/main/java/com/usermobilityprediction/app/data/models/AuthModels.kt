@@ -1,29 +1,63 @@
 package com.usermobilityprediction.app.data.models
 
-data class LoginRequest(
-    val email: String,
-    val password: String
-)
+import com.google.gson.annotations.SerializedName
 
 data class RegisterRequest(
-    val full_name: String,
+
+    @SerializedName("full_name")
+    val fullName: String,
+
+    @SerializedName("email")
     val email: String,
-    val phone_number: String? = null,
+
+    @SerializedName("phone_number")
+    val phoneNumber: String?,
+
+    @SerializedName("password")
     val password: String,
+
+    @SerializedName("role")
     val role: String = "USER"
 )
 
-data class UserModel(
-    val id: Int,
-    val full_name: String,
+data class LoginRequest(
+
+    @SerializedName("email")
     val email: String,
-    val phone_number: String?,
-    val role: String,
-    val safe_path_id: String
+
+    @SerializedName("password")
+    val password: String
 )
 
-data class LoginResponse(
-    val access_token: String,
-    val token_type: String,
-    val user: UserModel
+data class UserDto(
+
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("full_name")
+    val fullName: String,
+
+    @SerializedName("email")
+    val email: String,
+
+    @SerializedName("phone_number")
+    val phoneNumber: String?,
+
+    @SerializedName("role")
+    val role: String,
+
+    @SerializedName("safe_path_id")
+    val safePathId: String
+)
+
+data class AuthResponse(
+
+    @SerializedName("access_token")
+    val accessToken: String,
+
+    @SerializedName("token_type")
+    val tokenType: String,
+
+    @SerializedName("user")
+    val user: UserDto
 )
