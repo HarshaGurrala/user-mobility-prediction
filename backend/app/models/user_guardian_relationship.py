@@ -16,6 +16,8 @@ class UserGuardianRelationship(Base):
 
     __tablename__ = "user_guardian_relationship"
 
+    
+
     id = Column(
         Integer,
         primary_key=True,

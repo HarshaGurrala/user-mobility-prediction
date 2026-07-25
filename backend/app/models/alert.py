@@ -3,7 +3,8 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
-    ForeignKey
+    ForeignKey,
+    Boolean
 )
 
 from sqlalchemy.sql import func
@@ -59,3 +60,8 @@ class Alert(Base):
         DateTime,
         server_default=func.now()
     )
+
+    is_read = Column(
+    Boolean,
+    default=False
+)

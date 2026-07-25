@@ -2,68 +2,107 @@ package com.usermobilityprediction.app.data.network
 
 import android.content.Context
 import com.usermobilityprediction.app.data.storage.TokenManager
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // Emulator
-    // private const val BASE_URL = "http://10.0.2.2:8000/"
 
-    // Real Phone
-    private const val BASE_URL = "http://192.168.31.114:8000/"
+    private const val BASE_URL =
+        "https://worrisome-cataract-tannery.ngrok-free.dev/"
 
-    private fun createClient(
-        context: Context
-    ): OkHttpClient {
+    private lateinit var tokenManager: TokenManager
 
-        val tokenManager = TokenManager(context)
+    fun initialize(context: Context) {
 
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+        tokenManager =
+            TokenManager(
+                context.applicationContext
+            )
+    }
+
+    private val logging =
+        HttpLoggingInterceptor().apply {
+
+            level =
+                HttpLoggingInterceptor.Level.BODY
         }
 
-        return OkHttpClient.Builder()
+    private val authInterceptor =
+        Interceptor { chain ->
+
+            val originalRequest =
+                chain.request()
+
+            val token =
+                if (::tokenManager.isInitialized) {
+
+                    tokenManager.getToken()
+
+                } else {
+
+                    null
+                }
+
+            val requestBuilder =
+                originalRequest
+                    .newBuilder()
+
+            if (!token.isNullOrBlank()) {
+
+                requestBuilder
+                    .addHeader(
+                        "Authorization",
+                        "Bearer $token"
+                    )
+            }
+
+            val request =
+                requestBuilder.build()
+
+            chain.proceed(request)
+        }
+
+
+    private val client =
+        OkHttpClient.Builder()
+
             .addInterceptor(
-                AuthInterceptor(tokenManager)
+                authInterceptor
             )
-            .addInterceptor(logging)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+
+            .addInterceptor(
+                logging
+            )
+
             .build()
-    }
 
-    fun authApi(
-        context: Context
-    ): AuthApi {
 
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(createClient(context))
+    val api: ApiService by lazy {
+
+        Retrofit.Builder()
+
+            .baseUrl(
+                BASE_URL
+            )
+
+            .client(
+                client
+            )
+
             .addConverterFactory(
                 GsonConverterFactory.create()
             )
+
             .build()
-            .create(AuthApi::class.java)
-    }
 
-    fun profileApi(
-        context: Context
-    ): ProfileApi {
-
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(createClient(context))
-            .addConverterFactory(
-                GsonConverterFactory.create()
+            .create(
+                ApiService::class.java
             )
-            .build()
-            .create(ProfileApi::class.java)
     }
+
+
 }
-
-//fun guardianApi(context: Context): GuardianApi

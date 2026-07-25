@@ -53,23 +53,20 @@ def predict_next_location(
 
 
     # Model prediction confidence
-    lat_error = abs(
-        next_lat - latitude
-    )
+    error = (
+        abs(next_lat - latitude) +
+            abs(next_lon - longitude)
+        )
 
-    lon_error = abs(
-        next_lon - longitude
-    )
+    base_confidence = max(
+            60,
+            100 - (error * 10000)
+        )
 
-
-    error = lat_error + lon_error
-
-
-    confidence = max(
-        0,
-        100 - (error * 10000)
-    )
-
+    confidence = round(
+            min(base_confidence, 99.9),
+            2
+        )
 
     return {
 

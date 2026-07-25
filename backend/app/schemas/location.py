@@ -17,7 +17,9 @@ class LocationResponse(BaseModel):
     latitude: float
     longitude: float
     accuracy: Optional[float]
+    address: Optional[str]
     timestamp: str
+    address: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

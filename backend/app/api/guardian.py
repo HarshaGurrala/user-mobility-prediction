@@ -2,18 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-
-from app.schemas.guardian import GuardianRequest
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-
+from app.schemas.guardian import GuardianRequest
 
 from app.services.guardian_service import (
-    get_connected_users,
     send_request,
     get_pending_requests,
     accept_request,
-    reject_request
+    reject_request,
+    get_connected_users,
 )
 
 router = APIRouter(
@@ -22,26 +20,27 @@ router = APIRouter(
 )
 
 
+# ==========================================================
+# Guardian sends connection request to a User
+# ==========================================================
+
 @router.post("/connect")
 def connect(
     request: GuardianRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
 
-    # Only GUARDIAN can send connection requests
     if current_user.role != "GUARDIAN":
-
         raise HTTPException(
             status_code=403,
             detail="Only guardian accounts can send connection requests."
         )
 
-
     result = send_request(
-        db,
-        current_user.id,
-        request.safe_path_id
+        db=db,
+        guardian_id=current_user.id,
+        safe_path_id=request.safe_path_id
     )
 
     if result is None:
@@ -55,7 +54,7 @@ def connect(
             status_code=400,
             detail="You cannot connect to yourself."
         )
-    
+
     if result == "INVALID_ROLE":
         raise HTTPException(
             status_code=400,
@@ -73,27 +72,50 @@ def connect(
     }
 
 
-@router.get("/pending/{user_id}")
+# ==========================================================
+# USER views pending guardian requests
+# ==========================================================
+
+@router.get("/pending")
 def pending_requests(
-    user_id: int,
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
 
+    if current_user.role != "USER":
+        raise HTTPException(
+            status_code=403,
+            detail="Only user accounts can view pending requests."
+        )
+
     return get_pending_requests(
-        db,
-        user_id
+        db=db,
+        user_id=current_user.id
     )
 
 
-
-
+# ==========================================================
+# USER accepts guardian request
+# ==========================================================
 
 @router.put("/accept/{request_id}")
 def accept(
     request_id: int,
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    request = accept_request(db, request_id)
+
+    if current_user.role != "USER":
+        raise HTTPException(
+            status_code=403,
+            detail="Only user accounts can accept requests."
+        )
+
+    request = accept_request(
+        db=db,
+        request_id=request_id,
+        user_id=current_user.id
+    )
 
     if request is None:
         raise HTTPException(
@@ -106,12 +128,28 @@ def accept(
     }
 
 
+# ==========================================================
+# USER rejects guardian request
+# ==========================================================
+
 @router.put("/reject/{request_id}")
 def reject(
     request_id: int,
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    request = reject_request(db, request_id)
+
+    if current_user.role != "USER":
+        raise HTTPException(
+            status_code=403,
+            detail="Only user accounts can reject requests."
+        )
+
+    request = reject_request(
+        db=db,
+        request_id=request_id,
+        user_id=current_user.id
+    )
 
     if request is None:
         raise HTTPException(
@@ -123,9 +161,24 @@ def reject(
         "message": "Connection rejected"
     }
 
-@router.get("/connected-users/{guardian_id}")
+
+# ==========================================================
+# GUARDIAN views connected users
+# ==========================================================
+
+@router.get("/connected-users")
 def connected_users(
-    guardian_id: int,
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    return get_connected_users(db, guardian_id)
+
+    if current_user.role != "GUARDIAN":
+        raise HTTPException(
+            status_code=403,
+            detail="Only guardian accounts can view connected users."
+        )
+
+    return get_connected_users(
+        db=db,
+        guardian_id=current_user.id
+    )

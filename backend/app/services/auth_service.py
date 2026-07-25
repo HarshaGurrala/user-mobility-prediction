@@ -1,22 +1,27 @@
-from unittest import result
-
 from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.schemas.user import UserCreate
 
-from app.core.security import hash_password, verify_password
+from app.core.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+)
+
 from app.utils.id_generator import generate_safe_path_id
 
-from app.core.security import create_access_token
 
-def create_user(db: Session, user_data: UserCreate):
-
+def create_user(
+    db: Session,
+    user_data: UserCreate
+):
     print("========== CREATE USER ==========")
     print("Email:", user_data.email)
     print("REGISTER PASSWORD:", repr(user_data.password))
     print("Password Length:", len(user_data.password))
 
+    # Check whether user already exists
     existing_user = db.query(User).filter(
         User.email == user_data.email
     ).first()
@@ -25,17 +30,21 @@ def create_user(db: Session, user_data: UserCreate):
         print("User already exists")
         return None
 
+    # Hash password
     hashed_password = hash_password(user_data.password)
 
     print("Hash created successfully")
-    print(hashed_password)
-
     print("Generated Hash:", hashed_password)
+
     print(
         "Immediate Verify:",
-        verify_password(user_data.password, hashed_password)
+        verify_password(
+            user_data.password,
+            hashed_password
+        )
     )
 
+    # Create user
     new_user = User(
         full_name=user_data.full_name,
         email=user_data.email,
@@ -45,44 +54,35 @@ def create_user(db: Session, user_data: UserCreate):
         safe_path_id=generate_safe_path_id()
     )
 
+    # Save user
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
     print("User saved successfully")
 
-
     print("HASH AFTER SAVE:", new_user.password)
+
     print(
-    "VERIFY AFTER SAVE:",
-    verify_password(user_data.password, new_user.password)
+        "VERIFY AFTER SAVE:",
+        verify_password(
+            user_data.password,
+            new_user.password
+        )
     )
 
     return new_user
 
-    print("HASH AFTER SAVE:", new_user.password)
-    print(
-    "VERIFY AFTER SAVE:",
-    verify_password(user_data.password, new_user.password)
-    )
 
-
-    
-
-# def authenticate_user(
-#     db: Session,
-#     email: str,
-#     password: str
-# ):
 def authenticate_user(
     db: Session,
     email: str,
     password: str
 ):
-
     print("LOGIN PASSWORD:", repr(password))
     print("PASSWORD LENGTH:", len(password))
 
+    # Find user by email
     user = db.query(User).filter(
         User.email == email
     ).first()
@@ -94,10 +94,11 @@ def authenticate_user(
     print("HASH FROM DB:", user.password)
     print("HASH LENGTH:", len(user.password))
 
-    # if not verify_password(password, user.password):
-    #     return None
-    
-    result = verify_password(password, user.password)
+    # Verify password
+    result = verify_password(
+        password,
+        user.password
+    )
 
     print("VERIFY RESULT:", result)
 
@@ -107,19 +108,17 @@ def authenticate_user(
 
     print("Password verification successful")
 
-
-
+    # Create JWT
+    # The "sub" field contains the current user's database ID.
     token = create_access_token(
-    {
-        "sub": str(user.id),
-        "role": user.role
-    }
-)
+        {
+            "sub": str(user.id),
+            "role": user.role
+        }
+    )
 
     return {
         "access_token": token,
         "token_type": "bearer",
         "user": user
     }
-
- 

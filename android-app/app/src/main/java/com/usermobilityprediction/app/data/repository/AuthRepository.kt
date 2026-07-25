@@ -1,53 +1,58 @@
 package com.usermobilityprediction.app.data.repository
 
-import android.content.Context
-import com.usermobilityprediction.app.data.models.AuthResponse
-import com.usermobilityprediction.app.data.models.LoginRequest
-import com.usermobilityprediction.app.data.models.RegisterRequest
-import com.usermobilityprediction.app.data.models.UserDto
+import com.usermobilityprediction.app.data.model.LoginRequest
+import com.usermobilityprediction.app.data.model.LoginResponse
+import com.usermobilityprediction.app.data.model.RegisterRequest
+import com.usermobilityprediction.app.data.model.RegisterResponse
+import com.usermobilityprediction.app.data.model.UserResponse
+import com.usermobilityprediction.app.data.model.UserUpdateRequest
 import com.usermobilityprediction.app.data.network.RetrofitClient
 import retrofit2.Response
-
-class AuthRepository(
-    context: Context
-) {
-
-    private val api =
-        RetrofitClient.authApi(context)
-
-    suspend fun login(
-        email: String,
-        password: String
-    ): Response<AuthResponse> {
-
-        return api.login(
-            LoginRequest(
-                email = email,
-                password = password
-            )
-        )
-    }
+import com.usermobilityprediction.app.data.model.ChangePasswordRequest
+class AuthRepository {
 
     suspend fun register(
-        fullName: String,
-        email: String,
-        phone: String?,
-        password: String,
-        role: String
-    ): Response<UserDto> {
+        request: RegisterRequest
+    ): Response<RegisterResponse> {
 
-        return api.register(
-            RegisterRequest(
-                fullName = fullName,
-                email = email,
-                phoneNumber = phone,
-                password = password,
-                role = role
-            )
+        return RetrofitClient.api.register(
+            request
         )
     }
 
-    suspend fun getProfile(): Response<UserDto> {
-        return api.profile()
+
+    suspend fun login(
+        request: LoginRequest
+    ): Response<LoginResponse> {
+
+        return RetrofitClient.api.login(
+            request
+        )
     }
+
+
+    suspend fun getCurrentUser(): Response<UserResponse> {
+
+        return RetrofitClient.api.getCurrentUser()
+    }
+
+
+    suspend fun updateCurrentUser(
+        request: UserUpdateRequest
+    ): Response<UserResponse> {
+
+        return RetrofitClient.api.updateCurrentUser(
+            request
+        )
+    }
+
+    suspend fun changePassword(
+        request: ChangePasswordRequest
+    ): Response<Map<String, String>> {
+
+        return RetrofitClient.api.changePassword(
+            request
+        )
+    }
+
 }

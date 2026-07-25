@@ -1,124 +1,76 @@
 package com.usermobilityprediction.app.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import com.usermobilityprediction.app.ui.components.landing.HeroVisual
-import com.usermobilityprediction.app.ui.components.landing.LandingFeatureSection
-import com.usermobilityprediction.app.ui.components.landing.LandingCTASection
-import com.usermobilityprediction.app.ui.components.landing.LandingHeader
-import com.usermobilityprediction.app.ui.components.landing.LandingFooter
 import androidx.navigation.NavController
+import com.usermobilityprediction.app.navigation.Routes
+import com.usermobilityprediction.app.ui.landing.AnimatedBackground
+import com.usermobilityprediction.app.ui.landing.HeroContent
+import com.usermobilityprediction.app.ui.landing.HeroVisual
+import com.usermobilityprediction.app.ui.landing.LandingCTASection
+import com.usermobilityprediction.app.ui.landing.LandingFeatureSection
+import com.usermobilityprediction.app.ui.landing.LandingFooter
 
 @Composable
 fun LandingScreen(
-    navController: NavController? = null
-){
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF050505))
-            .verticalScroll(
-                rememberScrollState()
-            )
+    navController: NavController
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
 
+        AnimatedBackground()
 
-        LandingHeader()
-
-        Spacer(
-            modifier = Modifier.height(45.dp)
-        )
-
-
-        Text(
-            text = "AI powered mobility\n\nintelligence",
-            color = Color.White,
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Bold,
+        Column(
             modifier = Modifier
-                .padding(horizontal = 24.dp)
-        )
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    top = 40.dp,
+                    bottom = 30.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
+            HeroVisual()
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
+            Spacer(
+                modifier = Modifier.height(30.dp)
+            )
 
+            HeroContent(
+                navController = navController
+            )
 
-        Text(
-            text = "AI powered mobility intelligence\nwith guardian safety protection.",
-            color = Color.Gray,
-            fontSize = 16.sp,
-            modifier = Modifier
-                .padding(horizontal = 60.dp)
-        )
+            Spacer(
+                modifier = Modifier.height(40.dp)
+            )
 
+            LandingFeatureSection()
 
-        Spacer(
-            modifier = Modifier.height(100.dp)
-        )
+            Spacer(
+                modifier = Modifier.height(40.dp)
+            )
 
+            LandingCTASection(
+                onLoginClick = {
+                    navController.navigate(Routes.LOGIN)
+                },
+                onRegisterClick = {
+                    navController.navigate(Routes.REGISTER)
+                }
+            )
 
-        HeroVisual()
+            LandingFooter()
 
-
-        Spacer(
-            modifier = Modifier.height(40.dp)
-        )
-
-
-        Text(
-            text = "Smart Features",
-            color = Color.White,
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-        )
-
-
-        Spacer(
-            modifier = Modifier.height(20.dp)
-        )
-
-
-        LandingFeatureSection()
-
-
-        Spacer(
-            modifier = Modifier.height(50.dp)
-        )
-
-
-        LandingCTASection(
-            onLoginClick = {
-                navController?.navigate("login")
-            },
-            onRegisterClick = {
-                navController?.navigate("register")
-            }
-        )
-
-        Spacer(
-            modifier = Modifier.height(20.dp)
-        )
-
-        LandingFooter()
-
-
-        Spacer(
-            modifier = Modifier.height(40.dp)
-        )
+            Spacer(
+                modifier = Modifier.height(30.dp)
+            )
+        }
     }
 }

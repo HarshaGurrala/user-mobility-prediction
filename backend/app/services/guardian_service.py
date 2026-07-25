@@ -1,36 +1,43 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.models.user_guardian_relationship import UserGuardianRelationship
-from datetime import datetime
+
 
 def send_request(
     db: Session,
     guardian_id: int,
     safe_path_id: str
 ):
-
-    # Find user by SafePath ID
-    user = db.query(User).filter(
-        User.safe_path_id == safe_path_id
-    ).first()
+    # Find the USER using SafePath ID
+    user = (
+        db.query(User)
+        .filter(User.safe_path_id == safe_path_id)
+        .first()
+    )
 
     if not user:
         return None
 
-        # Receiver must be USER only
+    # SafePath ID must belong to a USER
     if user.role != "USER":
         return "INVALID_ROLE"
 
-    # Prevent self-connection
+    # Guardian cannot connect to themselves
     if guardian_id == user.id:
         return "SELF"
 
-    # Check if relationship already exists
-    existing = db.query(UserGuardianRelationship).filter(
-        UserGuardianRelationship.guardian_id == guardian_id,
-        UserGuardianRelationship.user_id == user.id
-    ).first()
+    # Check existing relationship
+    existing = (
+        db.query(UserGuardianRelationship)
+        .filter(
+            UserGuardianRelationship.guardian_id == guardian_id,
+            UserGuardianRelationship.user_id == user.id
+        )
+        .first()
+    )
 
     if existing:
         return "EXISTS"
@@ -47,14 +54,10 @@ def send_request(
 
     return relationship
 
-
-
-
 def get_pending_requests(
     db: Session,
     user_id: int
 ):
-
     requests = (
         db.query(
             UserGuardianRelationship,
@@ -74,7 +77,6 @@ def get_pending_requests(
     result = []
 
     for relationship, guardian in requests:
-
         result.append(
             {
                 "request_id": relationship.id,
@@ -88,16 +90,20 @@ def get_pending_requests(
     return result
 
 
-
-
-
 def accept_request(
     db: Session,
-    request_id: int
+    request_id: int,
+    user_id: int
 ):
-    request = db.query(UserGuardianRelationship).filter(
-        UserGuardianRelationship.id == request_id
-    ).first()
+    request = (
+        db.query(UserGuardianRelationship)
+        .filter(
+            UserGuardianRelationship.id == request_id,
+            UserGuardianRelationship.user_id == user_id,
+            UserGuardianRelationship.status == "PENDING"
+        )
+        .first()
+    )
 
     if not request:
         return None
@@ -113,11 +119,18 @@ def accept_request(
 
 def reject_request(
     db: Session,
-    request_id: int
+    request_id: int,
+    user_id: int
 ):
-    request = db.query(UserGuardianRelationship).filter(
-        UserGuardianRelationship.id == request_id
-    ).first()
+    request = (
+        db.query(UserGuardianRelationship)
+        .filter(
+            UserGuardianRelationship.id == request_id,
+            UserGuardianRelationship.user_id == user_id,
+            UserGuardianRelationship.status == "PENDING"
+        )
+        .first()
+    )
 
     if not request:
         return None
@@ -127,14 +140,14 @@ def reject_request(
     db.commit()
     db.refresh(request)
 
-    return 
+    return request
 
 
 def get_connected_users(
     db: Session,
     guardian_id: int
 ):
-    connections = (
+    users = (
         db.query(User)
         .join(
             UserGuardianRelationship,
@@ -147,4 +160,17 @@ def get_connected_users(
         .all()
     )
 
-    return connections
+    result = []
+
+    for user in users:
+        result.append(
+            {
+                "id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "safe_path_id": user.safe_path_id
+            }
+        )
+
+    return result

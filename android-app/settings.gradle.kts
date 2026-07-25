@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "User Mobility Prediction"
+rootProject.name = "UserMobilityPrediction"
 include(":app")

@@ -1,53 +1,44 @@
 package com.usermobilityprediction.app.data.storage
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
-private val Context.dataStore by preferencesDataStore(
-    name = "auth_preferences"
-)
+class TokenManager(context: Context) {
 
-class TokenManager(
-    private val context: Context
-) {
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
 
-    companion object {
-        private val ACCESS_TOKEN =
-            stringPreferencesKey("access_token")
+    private val prefs = EncryptedSharedPreferences.create(
+        context,
+        "auth_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+    fun saveToken(token: String) {
+        prefs.edit().putString("jwt_token", token).apply()
     }
 
-    val token: Flow<String?> =
-        context.dataStore.data.map {
-            it[ACCESS_TOKEN]
-        }
-
-    suspend fun saveToken(
-        token: String
-    ) {
-        context.dataStore.edit {
-            it[ACCESS_TOKEN] = token
-        }
+    fun getToken(): String? {
+        return prefs.getString("jwt_token", null)
     }
 
-    suspend fun clearToken() {
-        context.dataStore.edit {
-            it.remove(ACCESS_TOKEN)
-        }
+    fun clearToken() {
+        prefs.edit().clear().apply()
     }
 
-    fun getToken(): String? =
-        runBlocking {
-            token.firstOrNull()
-        }
+    fun isLoggedIn(): Boolean {
+        return getToken() != null
+    }
 
-    fun clear() =
-        runBlocking {
-            clearToken()
-        }
+    fun saveUserId(userId: Int) {
+        prefs.edit().putInt("user_id", userId).apply()
+    }
+
+    fun getUserId(): Int {
+        return prefs.getInt("user_id", -1)
+    }
 }

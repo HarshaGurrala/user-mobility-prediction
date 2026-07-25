@@ -20,6 +20,7 @@ router = APIRouter(
 
 
 
+
 @router.post("/create")
 def create(
     alert: AlertCreate,

@@ -5,7 +5,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey
 )
-
+from sqlalchemy import String
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -48,6 +48,11 @@ class Location(Base):
         Float,
         nullable=True
     )
+
+    address = Column(
+    String(500),
+    nullable=True
+)
 
 
     timestamp = Column(

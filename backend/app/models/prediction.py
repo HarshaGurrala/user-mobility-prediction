@@ -4,7 +4,8 @@ from sqlalchemy import (
     String,
     Float,
     DateTime,
-    ForeignKey
+    ForeignKey,
+    Boolean
 )
 
 from sqlalchemy.sql import func
@@ -17,13 +18,11 @@ class Prediction(Base):
 
     __tablename__ = "predictions"
 
-
     id = Column(
         Integer,
         primary_key=True,
         index=True
     )
-
 
     user_id = Column(
         Integer,
@@ -31,24 +30,50 @@ class Prediction(Base):
         nullable=False
     )
 
-
     predicted_location = Column(
         String(255),
         nullable=False
     )
 
+    predicted_latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    predicted_longitude = Column(
+        Float,
+        nullable=True
+    )
+
+    actual_latitude = Column(
+        Float,
+        nullable=True
+    )
+
+    actual_longitude = Column(
+        Float,
+        nullable=True
+    )
 
     confidence = Column(
         Float,
         nullable=False
     )
 
+    prediction_accuracy = Column(
+        Float,
+        nullable=True
+    )
+
+    matched = Column(
+        Boolean,
+        default=False
+    )
 
     created_at = Column(
         DateTime,
         server_default=func.now()
     )
-
 
     user = relationship(
         "User",

@@ -9,3 +9,6 @@ from app.models.safe_location import SafeLocation
 from app.models.prediction import Prediction
 from app.models.alert import Alert
 from app.models.user_guardian_relationship import UserGuardianRelationship
+
+from app.models.safety_history import SafetyHistory
+from app.models.user_safety_state import UserSafetyState

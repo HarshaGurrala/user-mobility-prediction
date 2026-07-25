@@ -1,47 +1,48 @@
 import requests
 
+GEOAPIFY_API_KEY = "d4f50c38602a411fb0d8927e139ee705"
+
 
 def get_location_name(
     latitude: float,
     longitude: float
 ):
 
-    url = "https://nominatim.openstreetmap.org/reverse"
-
+    url = "https://api.geoapify.com/v1/geocode/reverse"
 
     params = {
         "lat": latitude,
         "lon": longitude,
-        "format": "json"
+        "apiKey": GEOAPIFY_API_KEY
     }
 
+    try:
 
-    headers = {
-        "User-Agent": "UserMobilityPrediction"
-    }
+        response = requests.get(
+            url,
+            params=params,
+            timeout=10
+        )
 
+        response.raise_for_status()
 
-    response = requests.get(
-        url,
-        params=params,
-        headers=headers
-    )
+        data = response.json()
 
+        print("Geoapify Response:", data)
 
-    if response.status_code != 200:
-        return "Unknown Location"
+        features = data.get("features", [])
 
+        if features:
 
-    data = response.json()
+            properties = features[0].get("properties", {})
 
+            address = properties.get("formatted")
 
-    address = data.get(
-        "display_name"
-    )
+            if address:
+                return address
 
+    except Exception as e:
 
-    if address:
-        return address
-
+        print("Geoapify Error:", e)
 
     return "Unknown Location"

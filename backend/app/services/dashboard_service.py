@@ -3,15 +3,21 @@ from sqlalchemy.orm import Session
 from app.models.location import Location
 from app.models.prediction import Prediction
 from app.models.alert import Alert
+from app.models.user_guardian_relationship import (
+    UserGuardianRelationship
+)
 
-from app.models.user_guardian_relationship import UserGuardianRelationship
 from app.services.safety_service import get_safety_status
-from app.services.geocoding_service import get_location_name
+
 
 def get_guardian_dashboard(
     db: Session,
     guardian_id: int
 ):
+
+    # -----------------------------------------
+    # Get accepted connections
+    # -----------------------------------------
 
     connections = (
         db.query(UserGuardianRelationship)
@@ -22,16 +28,21 @@ def get_guardian_dashboard(
         .all()
     )
 
-
     children = []
 
+
+    # -----------------------------------------
+    # Process every connected user
+    # -----------------------------------------
 
     for connection in connections:
 
         user_id = connection.user_id
 
 
-        # Latest location
+        # -----------------------------------------
+        # Latest Location
+        # -----------------------------------------
 
         location = (
             db.query(Location)
@@ -45,7 +56,20 @@ def get_guardian_dashboard(
         )
 
 
-        # Latest prediction
+        # -----------------------------------------
+        # Location Name
+        # -----------------------------------------
+
+        place_name = (
+            location.address
+            if location and location.address
+            else "Unknown Location"
+        )
+
+
+        # -----------------------------------------
+        # Latest AI Prediction
+        # -----------------------------------------
 
         prediction = (
             db.query(Prediction)
@@ -59,12 +83,15 @@ def get_guardian_dashboard(
         )
 
 
-        # Latest alert
+        # -----------------------------------------
+        # Latest Alert
+        # -----------------------------------------
 
         alert = (
             db.query(Alert)
             .filter(
-                Alert.user_id == user_id
+                Alert.user_id == user_id,
+                Alert.guardian_id == guardian_id
             )
             .order_by(
                 Alert.created_at.desc()
@@ -73,65 +100,89 @@ def get_guardian_dashboard(
         )
 
 
+        # -----------------------------------------
+        # Safety Status
+        # -----------------------------------------
+
+        safety = get_safety_status(
+            db,
+            user_id
+        )
+
+
+        # -----------------------------------------
+        # Add User Dashboard Data
+        # -----------------------------------------
+
         children.append(
             {
                 "user_id": user_id,
 
-                # " safety_status": safety,
+                "current_location": {
 
-               "current_location": {
+                    "latitude":
+                        location.latitude
+                        if location
+                        else None,
 
-                "latitude":
-                location.latitude if location else None,
+                    "longitude":
+                        location.longitude
+                        if location
+                        else None,
 
+                    "place_name":
+                        place_name
 
-                "longitude":
-                location.longitude if location else None,
-
-
-                "place_name":
-                get_location_name(
-                    location.latitude,
-                    location.longitude
-                )
-                if location else "Unknown Location"
-
-            },
+                },
 
 
                 "prediction": {
 
                     "location":
-                    prediction.predicted_location if prediction else None,
+                        prediction.predicted_location
+                        if prediction
+                        else None,
 
                     "confidence":
-                    prediction.confidence if prediction else None
+                        prediction.confidence
+                        if prediction
+                        else None
 
                 },
 
 
-                "safety_status": get_safety_status(db, user_id),
+                "safety_status":
+                    safety,
 
 
                 "latest_alert": {
 
                     "type":
-                    alert.alert_type if alert else None,
+                        alert.alert_type
+                        if alert
+                        else None,
 
                     "message":
-                    alert.message if alert else None
+                        alert.message
+                        if alert
+                        else None
 
                 }
-
 
             }
         )
 
 
+    # -----------------------------------------
+    # Final Dashboard Response
+    # -----------------------------------------
+
     return {
 
-        "guardian_id": guardian_id,
+        "guardian_id":
+            guardian_id,
 
-        "children": children
+        "children":
+            children
 
     }

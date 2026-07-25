@@ -6,44 +6,82 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Typography that mirrors the website hierarchy
-val AppFont = FontFamily.Default // replaceable with Inter if fonts added
-
 val Typography = Typography(
+
     displayLarge = TextStyle(
-        fontFamily = AppFont,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 40.sp,
+        lineHeight = 48.sp,
+        letterSpacing = (-0.5).sp
+    ),
+
+    displayMedium = TextStyle(
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
         fontSize = 34.sp,
-        lineHeight = 40.sp
+        lineHeight = 42.sp
     ),
-    displayMedium = TextStyle(
-        fontFamily = AppFont,
+
+    headlineLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp
+    ),
+
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
-        lineHeight = 30.sp
+        fontSize = 24.sp
     ),
+
     titleLarge = TextStyle(
-        fontFamily = AppFont,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
-        lineHeight = 26.sp
+        fontSize = 20.sp
     ),
-    bodyLarge = TextStyle(
-        fontFamily = AppFont,
+
+    titleMedium = TextStyle(
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
+        fontSize = 18.sp
+    ),
+
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
+        lineHeight = 24.sp
+    ),
+
+    bodyMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 15.sp,
         lineHeight = 22.sp
     ),
+
     bodySmall = TextStyle(
-        fontFamily = AppFont,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        lineHeight = 18.sp
+        fontSize = 13.sp
     ),
-    labelSmall = TextStyle(
-        fontFamily = AppFont,
+
+    labelLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp
+    ),
+
+    labelMedium = TextStyle(
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        lineHeight = 16.sp
+        fontSize = 14.sp
+    ),
+
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp
     )
 )

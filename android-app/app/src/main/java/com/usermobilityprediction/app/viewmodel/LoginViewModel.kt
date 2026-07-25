@@ -1,26 +1,50 @@
-package com.usermobilityprediction.app.ui.viewmodel
+package com.usermobilityprediction.app.viewmodel
 
-import androidx.lifecycle.ViewModel
+
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.usermobilityprediction.app.data.model.LoginRequest
 import com.usermobilityprediction.app.data.repository.AuthRepository
 import com.usermobilityprediction.app.data.storage.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.usermobilityprediction.app.data.network.RetrofitClient
+import android.app.Application
+import android.content.Intent
+import androidx.core.content.ContextCompat
+import com.usermobilityprediction.app.data.location.LocationForegroundService
 
-data class LoginUiState(
-    val isLoading: Boolean = false,
-    val isSuccess: Boolean = false,
-    val error: String? = null
-)
+
 
 class LoginViewModel(
-    private val repository: AuthRepository,
-    private val tokenManager: TokenManager
-) : ViewModel() {
+    application: Application
+) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState
+    private val repository = AuthRepository()
+
+    private val tokenManager =
+        TokenManager(application.applicationContext)
+
+    private val _loading =
+        MutableStateFlow(false)
+
+    val loading: StateFlow<Boolean> =
+        _loading
+
+
+
+    private val _success =
+        MutableStateFlow(false)
+
+    val success: StateFlow<Boolean> =
+        _success
+
+    private val _error =
+        MutableStateFlow<String?>(null)
+
+    val error: StateFlow<String?> =
+        _error
 
     fun login(
         email: String,
@@ -29,45 +53,83 @@ class LoginViewModel(
 
         viewModelScope.launch {
 
-            _uiState.value = LoginUiState(isLoading = true)
+            _loading.value = true
+
+            _success.value = false
+
+            _error.value = null
 
             try {
 
-                val response = repository.login(
-                    email,
-                    password
-                )
-
-                if (response.isSuccessful && response.body() != null) {
-
-                    val auth = response.body()!!
-
-                    tokenManager.saveToken(
-                        auth.accessToken
+                val response =
+                    repository.login(
+                        LoginRequest(
+                            email = email.trim(),
+                            password = password
+                        )
                     )
 
-                    _uiState.value = LoginUiState(
-                        isSuccess = true
-                    )
+                if (response.isSuccessful) {
+
+                    val loginResponse =
+                        response.body()
+
+                    if (loginResponse != null) {
+
+                        tokenManager.saveToken(
+                            loginResponse.access_token
+                        )
+
+                        val userResponse =
+                            RetrofitClient.api.getCurrentUser()
+
+                        if (userResponse.isSuccessful && userResponse.body() != null) {
+
+                            tokenManager.saveUserId(
+                                userResponse.body()!!.id
+                            )
+
+//                            val intent = Intent(
+//                                getApplication(),
+//                                LocationForegroundService::class.java
+//                            )
+//
+//                            ContextCompat.startForegroundService(
+//                                getApplication(),
+//                                intent
+//                            )
+
+                            _success.value = true
+
+                        } else {
+
+                            _error.value =
+                                "Unable to load user profile"
+                        }
+                    } else {
+
+                        _error.value =
+                            "Invalid server response"
+                    }
 
                 } else {
 
-                    _uiState.value = LoginUiState(
-                        error = "Invalid email or password"
-                    )
-
+                    _error.value =
+                        response.errorBody()
+                            ?.string()
+                            ?: "Login failed"
                 }
 
             } catch (e: Exception) {
 
-                _uiState.value = LoginUiState(
-                    error = e.localizedMessage
-                )
+                _error.value =
+                    e.localizedMessage
+                        ?: "Unable to connect to server"
 
+            } finally {
+
+                _loading.value = false
             }
-
         }
-
     }
-
 }
