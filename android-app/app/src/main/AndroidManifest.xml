@@ -17,6 +17,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.UserMobilityPrediction">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCZNt80FD2w99CraiWfw2AFRzDeuD9x4Wg" />
         <service
             android:name=".data.location.LocationForegroundService"
             android:enabled="true"

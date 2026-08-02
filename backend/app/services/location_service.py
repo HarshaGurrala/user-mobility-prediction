@@ -5,6 +5,7 @@ from app.schemas.location import LocationCreate
 from app.services.geocoding_service import (
     get_location_name
 )
+import requests
 
 from app.services.location_check_service import (
     check_safe_location,
@@ -82,3 +83,67 @@ def get_location_history(
         .order_by(Location.timestamp.desc())
         .all()
     )
+
+
+
+# def get_address_from_coordinates(
+#     latitude: float,
+#     longitude: float
+# ):
+
+    try:
+
+        url = (
+            "https://nominatim.openstreetmap.org/reverse"
+        )
+
+        params = {
+
+            "lat": latitude,
+
+            "lon": longitude,
+
+            "format": "json",
+
+            "zoom": 18
+
+        }
+
+
+        headers = {
+
+            "User-Agent":
+            "SafePathAI-App"
+
+        }
+
+
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=5
+        )
+
+
+        if response.status_code == 200:
+
+            data = response.json()
+
+
+            address = data.get(
+                "display_name"
+            )
+
+
+            if address:
+
+                return address
+
+
+        return "Unknown Location"
+
+
+    except Exception:
+
+        return "Unknown Location"

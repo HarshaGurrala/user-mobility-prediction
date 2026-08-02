@@ -68,21 +68,26 @@ import androidx.compose.material3.ButtonDefaults
 
 
 @Composable
+
 fun UserDashboardScreen(
-    navController: NavController
+    navController: NavController,
+    userId: Int
 ) {
 
-    val viewModel: UserDashboardViewModel = viewModel()
 
-    val lifecycleOwner = LocalLifecycleOwner.current
+        val viewModel: UserDashboardViewModel = viewModel()
 
-    DisposableEffect(lifecycleOwner) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+
+        DisposableEffect(lifecycleOwner) {
 
         val observer = LifecycleEventObserver { _, event: Lifecycle.Event ->
 
             if (event == Lifecycle.Event.ON_RESUME) {
 
-                viewModel.refreshDashboard()
+                viewModel.refreshDashboard(
+                    userId
+                )
 
             }
 
@@ -968,24 +973,19 @@ private fun EmergencyContactsCard(
                             Column {
 
                                 Text(
-                                    text = contact.name,
+                                    text = contact.name ?: "Unknown Contact",
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
                                 )
 
-
                                 Text(
-                                    text =
-                                        contact.relationshipType
-                                            ?: "Contact",
-
+                                    text = contact.relationshipType ?: "Contact",
                                     color = Color.Gray,
                                     style = MaterialTheme.typography.bodySmall
                                 )
 
-
                                 Text(
-                                    text = contact.phoneNumber,
+                                    text = contact.phoneNumber ?: "No Phone Number",
                                     color = Color.LightGray,
                                     style = MaterialTheme.typography.bodySmall
                                 )

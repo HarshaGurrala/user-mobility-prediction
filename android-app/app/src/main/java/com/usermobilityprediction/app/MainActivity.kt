@@ -13,7 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-
+import com.google.android.libraries.places.api.Places
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(
@@ -45,6 +45,15 @@ class MainActivity : ComponentActivity() {
         RetrofitClient.initialize(
             applicationContext
         )
+
+        if (!Places.isInitialized()) {
+
+            Places.initialize(
+                applicationContext,
+                "AIzaSyCZNt80FD2w99CraiWfw2AFRzDeuD9x4Wg"
+            )
+
+        }
 
         setContent {
 

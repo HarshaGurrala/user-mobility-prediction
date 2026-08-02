@@ -16,14 +16,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.usermobilityprediction.app.navigation.Routes
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.usermobilityprediction.app.viewmodel.GuardianRequestViewModel
 @Composable
 fun SettingsScreen(
     navController: NavController
+
 ) {
 
     var locationTracking by remember {
         mutableStateOf(true)
+    }
+
+
+
+    val guardianViewModel: GuardianRequestViewModel = viewModel()
+
+    val requests by guardianViewModel.requests.collectAsState()
+
+    LaunchedEffect(Unit) {
+
+        guardianViewModel.loadRequests()
+
     }
 
     var backgroundLocation by remember {
@@ -144,7 +158,11 @@ fun SettingsScreen(
                 title = "Safe Zones",
                 subtitle = "Manage your safe locations",
                 onClick = {
-                    // Coming later
+
+                    navController.navigate(
+                        Routes.SAFE_ZONES
+                    )
+
                 }
             )
 
@@ -164,9 +182,12 @@ fun SettingsScreen(
                 title = "Emergency Contacts",
                 subtitle = "Manage emergency contacts",
                 onClick = {
-                    // Coming later
+                    navController.navigate(Routes.EMERGENCY_CONTACTS)
+
                 }
             )
+
+
 
             Spacer(
                 modifier = Modifier.height(24.dp)

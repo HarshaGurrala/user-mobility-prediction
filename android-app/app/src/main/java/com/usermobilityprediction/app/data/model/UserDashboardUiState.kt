@@ -32,6 +32,12 @@ data class UserDashboardUiState(
 
     val loading: Boolean = false,
 
-    val error: String? = null
+    val error: String? = null,
+
+    val predictedLocation: String = "No prediction available",
+
+    val predictionConfidence: String = "--",
+
+    val predictionStatus: String = "Pending"
 
 )

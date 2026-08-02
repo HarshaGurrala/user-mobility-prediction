@@ -36,6 +36,9 @@ import com.usermobilityprediction.app.ui.components.PasswordTextField
 import com.usermobilityprediction.app.ui.components.PrimaryButton
 import com.usermobilityprediction.app.viewmodel.LoginViewModel
 
+
+
+
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -60,20 +63,55 @@ fun LoginScreen(
     val success by
     loginViewModel.success.collectAsState()
 
+
+
     val apiError by
     loginViewModel.error.collectAsState()
 
-    LaunchedEffect(success) {
+    val userRole by loginViewModel.userRole.collectAsState()
 
-        if (success) {
 
-            navController.navigate(Routes.APP_SHELL) {
-                popUpTo(Routes.LANDING) {
-                    inclusive = true
+    LaunchedEffect(success, userRole) {
+
+        if(success){
+
+            if(userRole == "GUARDIAN"){
+
+
+                navController.navigate(
+                    "guardian_connect"
+                ){
+
+                    popUpTo(
+                        Routes.LANDING
+                    ){
+
+                        inclusive = true
+                    }
+
                 }
-                launchSingleTop = true
+
+
+            } else {
+
+
+                navController.navigate(
+                    Routes.APP_SHELL
+                ){
+
+                    popUpTo(
+                        Routes.LANDING
+                    ){
+
+                        inclusive = true
+                    }
+
+                }
+
             }
+
         }
+
     }
 
     Box(

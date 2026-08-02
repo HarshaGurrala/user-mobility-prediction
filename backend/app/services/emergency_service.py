@@ -31,3 +31,52 @@ def get_contacts(
     return db.query(EmergencyContact).filter(
         EmergencyContact.user_id == user_id
     ).all()
+
+
+
+def update_contact(
+    db: Session,
+    contact_id: int,
+    contact_data: EmergencyContactCreate
+):
+
+    contact = db.query(EmergencyContact).filter(
+        EmergencyContact.id == contact_id
+    ).first()
+
+
+    if not contact:
+        return None
+
+
+    contact.name = contact_data.name
+    contact.phone_number = contact_data.phone_number
+    contact.email = contact_data.email
+    contact.relationship_type = contact_data.relationship_type
+
+
+    db.commit()
+    db.refresh(contact)
+
+    return contact
+
+
+
+def delete_contact(
+    db: Session,
+    contact_id: int
+):
+
+    contact = db.query(EmergencyContact).filter(
+        EmergencyContact.id == contact_id
+    ).first()
+
+
+    if not contact:
+        return False
+
+
+    db.delete(contact)
+    db.commit()
+
+    return True

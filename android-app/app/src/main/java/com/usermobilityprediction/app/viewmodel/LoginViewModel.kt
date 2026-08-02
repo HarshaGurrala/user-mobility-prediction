@@ -32,6 +32,12 @@ class LoginViewModel(
     val loading: StateFlow<Boolean> =
         _loading
 
+    private val _userRole =
+        MutableStateFlow<String>("")
+
+    val userRole: StateFlow<String> =
+        _userRole
+
 
 
     private val _success =
@@ -85,8 +91,16 @@ class LoginViewModel(
 
                         if (userResponse.isSuccessful && userResponse.body() != null) {
 
+                            val user = userResponse.body()!!
+
+                            _userRole.value = user.role
+
                             tokenManager.saveUserId(
-                                userResponse.body()!!.id
+                                user.id
+                            )
+
+                            tokenManager.saveUserRole(
+                                user.role
                             )
 
 //                            val intent = Intent(

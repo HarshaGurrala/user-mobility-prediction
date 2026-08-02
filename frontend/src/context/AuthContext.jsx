@@ -63,21 +63,35 @@ const response = await api.post(
 
 
 const accessToken =
-
 response.data.access_token;
 
 
+const user =
+response.data.user;
 
 
 localStorage.setItem(
-
 "token",
-
 accessToken
-
 );
 
 
+localStorage.setItem(
+"user",
+JSON.stringify(user)
+);
+
+
+localStorage.setItem(
+"userId",
+user.id
+);
+
+
+localStorage.setItem(
+"role",
+user.role
+);
 
 
 setToken(accessToken);
@@ -98,9 +112,13 @@ return response.data;
 const logout=()=>{
 
 
-localStorage.removeItem(
-    "token"
-);
+localStorage.removeItem("token");
+
+localStorage.removeItem("user");
+
+localStorage.removeItem("userId");
+
+localStorage.removeItem("role");
 
 
 setToken(null);

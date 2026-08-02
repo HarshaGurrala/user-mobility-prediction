@@ -8,27 +8,27 @@ import AlertsCard from "../components/dashboard/AlertsCard";
 import SafeLocationCard from "../components/dashboard/SafeLocationCard";
 import LiveMap from "../components/dashboard/LiveMap";
 import LocationAnalysisCard from "../components/dashboard/LocationAnalysisCard";
-
+import { useParams } from "react-router-dom";
 import useMobilityData from "../hooks/useMobilityData";
 
 export default function Dashboard() {
-  // Replace this with logged-in user id if stored elsewhere
-  const userId = localStorage.getItem("userId");
 
-  const {
-    location,
-    history,
-    prediction,
-    alerts,
-    loading,
-    error,
-  } = useMobilityData(userId);
+  const { userId: routeUserId } = useParams();
 
-  const safeLocations = [
-    "Home",
-    "College",
-    "Office",
-  ];
+  const userId =
+    routeUserId ||
+    localStorage.getItem("userId");
+ const {
+ location,
+ history,
+ prediction,
+ alerts,
+ safeLocations,
+ loading,
+ error,
+} = useMobilityData(userId);
+
+
 
   return (
     <div
@@ -78,7 +78,16 @@ py-8
 space-y-10
 "
       >
-        <DashboardHeader />
+      <DashboardHeader
+  user={location}
+  onlineStatus={
+    location?.is_online
+    ?
+    "online"
+    :
+    "offline"
+  }
+/>
 
         {error && (
           <div
@@ -166,14 +175,15 @@ lg:grid-cols-2
 gap-6
 "
         >
-          <SafeLocationCard
-            locations={safeLocations}
-          />
+         <SafeLocationCard
+ locations={safeLocations}
+ loading={loading}
+/>
 
-          <LocationAnalysisCard
-            history={history}
-            loading={loading}
-          />
+    <LocationAnalysisCard
+    history={history}
+    loading={loading}
+/>
         </div>
       </div>
     </div>

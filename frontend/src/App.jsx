@@ -1,106 +1,64 @@
-// import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// import Landing from "./pages/Landing/Landing";
-
-// function App() {
-//   return (
-//     <BrowserRouter>
-//       <Routes>
-//         <Route path="/" element={<Landing />} />
-//       </Routes>
-//     </BrowserRouter>
-//   );
-// }
-
-// export default App;
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 
 import { AuthProvider } from "./context/AuthContext";
 
-
 import ProtectedRoute from "./routes/ProtectedRoute";
-
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing/Landing";
 
+import GuardianHome from "./pages/guardian/GuardianHome";
+import Dashboard from "./pages/Dashboard";
 
-// Temporary dashboard
-// Replace with actual dashboard later
-
-// function Dashboard(){
-
-//     return (
-
-//         <div className="
-//         min-h-screen
-//         bg-[#050505]
-//         text-white
-//         flex
-//         items-center
-//         justify-center
-//         text-3xl
-//         ">
-
-//             AI Mobility Dashboard
-
-//         </div>
-
-//     );
-
-// }
+import GuardianFamilyMap from "./pages/guardian/GuardianFamilyMap";
 
 
 
 export default function App(){
 
-
 return (
 
 <AuthProvider>
 
-
 <BrowserRouter>
-
 
 <Routes>
 
 
 <Route
-
 path="/"
-
 element={<Landing />}
-
 />
 
 
 <Route
-
 path="/login"
-
 element={<Login />}
-
 />
 
 
-
 <Route
-
 path="/register"
-
 element={<Register />}
+/>
 
+
+<Route
+path="/guardian/"
+element={
+<ProtectedRoute role="GUARDIAN">
+<GuardianHome/>
+</ProtectedRoute>
+}
 />
 
 
 
 
 <Route
-path="/dashboard"
+path="/dashboard/:userId"
 element={
 <ProtectedRoute>
 <Dashboard/>
@@ -108,27 +66,30 @@ element={
 }
 />
 
+onClick={() =>
+ navigate(`/dashboard/${user.id}`)
+}
+
+<Route
+path="*"
+element={<Landing />}
+/>
+
 
 
 <Route
-
-path="*"
-
-element={<Landing />}
-
+ path="/guardian/family-map"
+ element={<GuardianFamilyMap />}
 />
 
 
 
 </Routes>
 
-
 </BrowserRouter>
-
 
 </AuthProvider>
 
 );
-
 
 }

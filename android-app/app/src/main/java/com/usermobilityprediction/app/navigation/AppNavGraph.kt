@@ -10,6 +10,8 @@ import com.usermobilityprediction.app.ui.screens.LandingScreen
 import com.usermobilityprediction.app.ui.screens.LoginScreen
 import com.usermobilityprediction.app.ui.screens.RegisterScreen
 import com.usermobilityprediction.app.ui.screens.SettingsScreen
+import com.usermobilityprediction.app.ui.screens.GuardianConnectScreen
+
 
 @Composable
 fun AppNavGraph(
@@ -61,6 +63,39 @@ fun AppNavGraph(
             ChangePasswordScreen(
                 navController = navController
             )
+        }
+
+        composable(
+            Routes.EDIT_EMERGENCY_CONTACT
+        ) { backStackEntry ->
+
+            val contactId =
+                backStackEntry.arguments
+                    ?.getString("contact_id")
+                    ?.toIntOrNull()
+                    ?: 0
+
+
+
+
+
+
+//            EditEmergencyContactScreen(
+//                navController = navController,
+//                contactId = contactId,
+//                userId = userId ?: 0
+//            )
+
+        }
+
+        composable(
+            route = "guardian_connect"
+        ) {
+
+            GuardianConnectScreen(
+                navController = navController
+            )
+
         }
     }
 }

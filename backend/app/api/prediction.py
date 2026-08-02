@@ -42,11 +42,11 @@ def predict_next_location(
     current_user: User = Depends(get_current_user)
 ):
 
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Unauthorized"
-        )
+  if current_user.id != user_id and current_user.role != "GUARDIAN":
+    raise HTTPException(
+        status_code=403,
+        detail="Unauthorized"
+    )
 
     latest = get_latest_prediction(
         db,

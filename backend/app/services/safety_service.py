@@ -26,15 +26,13 @@ def get_safety_status(
         .first()
     )
 
-
     if not location:
 
         return {
             "status": "UNKNOWN",
-            "message": "No location data"
+            "message": "No location data",
+            "location_name": None
         }
-
-
 
     safe_locations = (
         db.query(SafeLocation)
@@ -44,34 +42,22 @@ def get_safety_status(
         .all()
     )
 
-
     for safe in safe_locations:
 
         distance = calculate_distance(
-
             location.latitude,
-
             location.longitude,
-
             safe.latitude,
-
             safe.longitude
-
         )
-
 
         if distance <= safe.radius:
 
             return {
-
                 "status": "SAFE",
-
-                "message":
-                f"User is at {safe.location_name}"
-
+                "message": f"User is at {safe.location_name}",
+                "location_name": safe.location_name
             }
-
-
 
     recent_alert = (
         db.query(Alert)
@@ -84,25 +70,16 @@ def get_safety_status(
         .first()
     )
 
-
     if recent_alert:
 
         return {
-
             "status": "DANGER",
-
-            "message":
-            recent_alert.message
-
+            "message": recent_alert.message,
+            "location_name": None
         }
 
-
-
     return {
-
         "status": "WARNING",
-
-        "message":
-        "User is outside safe locations"
-
+        "message": "User is outside safe locations",
+        "location_name": None
     }

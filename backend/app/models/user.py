@@ -86,6 +86,17 @@ class User(Base):
         onupdate=func.now()
     )
 
+    last_seen = Column(
+        DateTime,
+        nullable=True
+    )
+    
+    
+    is_online = Column(
+        Boolean,
+        default=False
+    )
+
 
 
     # User's emergency contacts
@@ -114,3 +125,6 @@ class User(Base):
         back_populates="user",
         cascade="all, delete"
     )
+
+
+  

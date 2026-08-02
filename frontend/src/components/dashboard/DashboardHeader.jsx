@@ -9,7 +9,10 @@ import {
 
 
 
-export default function DashboardHeader(){
+export default function DashboardHeader({
+  user,
+  onlineStatus
+}) {
 
 
 return (
@@ -394,19 +397,37 @@ justify-center
 
 <div className="hidden md:block">
 
-
 <p
-
 className="
 text-sm
 text-white
 "
-
 >
-
-Guardian
-
+{user?.full_name || "User"}
 </p>
+
+
+<div className="flex items-center gap-2">
+
+
+<div
+
+className={`
+h-2
+w-2
+rounded-full
+
+${
+onlineStatus === "online"
+?
+"bg-green-400"
+:
+"bg-red-400"
+}
+
+`}
+
+/>
 
 
 <p
@@ -418,9 +439,18 @@ text-gray-400
 
 >
 
-Online
+{
+onlineStatus === "online"
+?
+"Online"
+:
+"Offline"
+}
 
 </p>
+
+
+</div>
 
 
 

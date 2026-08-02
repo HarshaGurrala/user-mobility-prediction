@@ -5,9 +5,13 @@ import androidx.navigation.NavController
 
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    userId: Int
 ) {
+
     UserDashboardScreen(
-        navController = navController
+        navController = navController,
+        userId = userId
     )
+
 }

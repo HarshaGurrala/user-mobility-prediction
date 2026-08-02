@@ -19,3 +19,9 @@ class EmergencyContactResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class EmergencyContactUpdate(BaseModel):
+    name: str
+    phone_number: str
+    email: Optional[EmailStr] = None
+    relationship_type: str

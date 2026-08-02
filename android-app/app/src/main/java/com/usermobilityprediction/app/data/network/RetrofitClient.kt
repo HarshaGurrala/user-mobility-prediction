@@ -8,13 +8,17 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+
 object RetrofitClient {
 
 
     private const val BASE_URL =
         "https://worrisome-cataract-tannery.ngrok-free.dev/"
 
+
     private lateinit var tokenManager: TokenManager
+
+
 
     fun initialize(context: Context) {
 
@@ -22,20 +26,28 @@ object RetrofitClient {
             TokenManager(
                 context.applicationContext
             )
+
     }
+
+
 
     private val logging =
         HttpLoggingInterceptor().apply {
 
             level =
                 HttpLoggingInterceptor.Level.BODY
+
         }
+
+
 
     private val authInterceptor =
         Interceptor { chain ->
 
+
             val originalRequest =
                 chain.request()
+
 
             val token =
                 if (::tokenManager.isInitialized) {
@@ -45,11 +57,21 @@ object RetrofitClient {
                 } else {
 
                     null
+
                 }
+
+
+            android.util.Log.d(
+                "AUTH_TEST",
+                "TOKEN = $token"
+            )
+
 
             val requestBuilder =
                 originalRequest
                     .newBuilder()
+
+
 
             if (!token.isNullOrBlank()) {
 
@@ -58,13 +80,16 @@ object RetrofitClient {
                         "Authorization",
                         "Bearer $token"
                     )
+
             }
 
-            val request =
-                requestBuilder.build()
 
-            chain.proceed(request)
+            chain.proceed(
+                requestBuilder.build()
+            )
+
         }
+
 
 
     private val client =
@@ -81,7 +106,9 @@ object RetrofitClient {
             .build()
 
 
-    val api: ApiService by lazy {
+
+    private val retrofit: Retrofit by lazy {
+
 
         Retrofit.Builder()
 
@@ -99,10 +126,41 @@ object RetrofitClient {
 
             .build()
 
-            .create(
-                ApiService::class.java
-            )
     }
+
+
+
+    val api: ApiService by lazy {
+
+        retrofit.create(
+            ApiService::class.java
+        )
+
+    }
+
+
+
+    val predictionApi: PredictionApi by lazy {
+
+        retrofit.create(
+            PredictionApi::class.java
+        )
+
+    }
+
+
+    val emergencyContactApi: EmergencyContactApi by lazy {
+
+        retrofit.create(EmergencyContactApi::class.java)
+
+    }
+
+    val safeLocationApi: SafeLocationApi by lazy {
+
+        retrofit.create(SafeLocationApi::class.java)
+
+    }
+
 
 
 }

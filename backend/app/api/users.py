@@ -66,3 +66,70 @@ def update_my_profile(
 
 
     return current_user
+
+
+@router.get(
+    "/{user_id}",
+    response_model=UserResponse
+)
+def get_user_by_id(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+
+    return user
+
+
+@router.get("/search/{safe_path_id}")
+def search_user_by_safe_path_id(
+    safe_path_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    if current_user.role != "GUARDIAN":
+        raise HTTPException(
+            status_code=403,
+            detail="Only guardian accounts can search users."
+        )
+
+    user = (
+        db.query(User)
+        .filter(
+            User.safe_path_id == safe_path_id,
+            User.role == "USER"
+        )
+        .first()
+    )
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "safe_path_id": user.safe_path_id,
+        "is_online": user.is_online
+    }

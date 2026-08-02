@@ -1,33 +1,155 @@
-// import api from "../api/axios";
-// import { getUserId } from "../utils/auth";
+// // import api from "../api/axios";
+// // import { getUserId } from "../utils/auth";
 
 
 
-// export const getCurrentLocation = async () => {
+// // export const getCurrentLocation = async () => {
 
 
-//     const userId = getUserId();
+// //     const userId = getUserId();
 
 
-//     if (!userId) {
+// //     if (!userId) {
 
-//         throw new Error(
-//             "User not authenticated"
-//         );
+// //         throw new Error(
+// //             "User not authenticated"
+// //         );
 
+// //     }
+
+
+
+// //     const response = await api.get(
+
+// //         `/location/current/${userId}`
+
+// //     );
+
+
+
+// //     return response.data;
+
+
+// // };
+
+
+
+
+
+// // export const saveLocation = async (locationData) => {
+
+
+// //     const userId = getUserId();
+
+
+
+// //     if (!userId) {
+
+// //         throw new Error(
+// //             "User not authenticated"
+// //         );
+
+// //     }
+
+
+
+// //     const response = await api.post(
+
+// //         `/location/update/${userId}`,
+
+// //         locationData
+
+// //     );
+
+
+
+// //     return response.data;
+
+
+// // };
+
+
+
+
+// import axios from "axios";
+
+// import {
+//   getUserProfile
+// } from "../services/locationService";
+
+
+
+// const API_URL = "http://127.0.0.1:8000";
+
+// const [user,setUser] = useState(null);
+
+// const api = axios.create({
+
+//     baseURL: API_URL,
+
+//     headers:{
+//         "Content-Type":"application/json"
 //     }
 
-
-
-//     const response = await api.get(
-
-//         `/location/current/${userId}`
-
-//     );
+// });
 
 
 
-//     return response.data;
+
+
+// // Attach JWT token automatically
+
+// api.interceptors.request.use(
+
+// (config)=>{
+
+
+// const token = localStorage.getItem("token");
+
+
+// if(token){
+
+// config.headers.Authorization = 
+// `Bearer ${token}`;
+
+// }
+
+
+// return config;
+
+
+// },
+
+
+// (error)=>{
+
+// return Promise.reject(error);
+
+// }
+
+
+// );
+
+
+
+
+
+
+
+
+// // Current user location
+
+// export const getCurrentLocation = async(userId)=>{
+
+
+// const response = await api.get(
+
+// `/location/current/${userId}`
+
+// );
+
+
+// return response.data;
 
 
 // };
@@ -36,47 +158,93 @@
 
 
 
-// export const saveLocation = async (locationData) => {
-
-
-//     const userId = getUserId();
 
 
 
-//     if (!userId) {
+// // Location history
 
-//         throw new Error(
-//             "User not authenticated"
-//         );
-
-//     }
+// export const getLocationHistory = async(userId)=>{
 
 
+// const response = await api.get(
 
-//     const response = await api.post(
+// `/location/history/${userId}`
 
-//         `/location/update/${userId}`,
-
-//         locationData
-
-//     );
+// );
 
 
-
-//     return response.data;
+// return response.data;
 
 
 // };
 
 
 
+
+
+
+
+
+// // AI next location prediction
+
+// export const getPrediction = async(userId)=>{
+
+
+// const response = await api.get(
+
+// `/prediction/next/${userId}`
+
+// );
+
+
+// return response.data;
+
+
+// };
+
+
+
+
+
+
+
+
+// // Alerts
+
+// export const getAlerts = async(userId)=>{
+
+
+// const response = await api.get(
+
+// `/alert/${userId}`
+
+// );
+
+
+// return response.data;
+
+
+// };
+
+// export default api;
+
+
+
+
+// export const getUserProfile = async (userId) => {
+
+//   const response = await api.get(
+//     `/users/${userId}`
+//   );
+
+//   return response.data;
+
+// };
 
 import axios from "axios";
 
 
-
 const API_URL = "http://127.0.0.1:8000";
-
 
 
 const api = axios.create({
@@ -88,7 +256,6 @@ const api = axios.create({
     }
 
 });
-
 
 
 
@@ -125,7 +292,6 @@ return Promise.reject(error);
 
 
 );
-
 
 
 
@@ -209,10 +375,38 @@ return response.data;
 
 export const getAlerts = async(userId)=>{
 
+const response = await api.get(
+`/alert/user/${userId}`
+);
+
+return response.data;
+
+};
+
+
+
+
+export const getSafeLocations = async(userId)=>{
+
+const response = await api.get(
+`/safe-location/${userId}`
+);
+
+return response.data;
+
+};
+
+
+
+
+// User profile + online status
+
+export const getUserProfile = async(userId)=>{
+
 
 const response = await api.get(
 
-`/alert/${userId}`
+`/users/${userId}`
 
 );
 
@@ -222,4 +416,18 @@ return response.data;
 
 };
 
+
+
+
+
 export default api;
+
+export const getMovementAnalytics = async (userId) => {
+
+    const response = await api.get(
+        `/analytics/movement/${userId}`
+    );
+
+    return response.data;
+
+};

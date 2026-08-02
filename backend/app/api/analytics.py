@@ -6,9 +6,7 @@ from app.dependencies.auth import get_current_user
 
 from app.models.user import User
 
-from app.services.analytics_service import (
-    get_overview
-)
+
 
 from app.services.analytics_service import (
     get_overview,
@@ -17,13 +15,17 @@ from app.services.analytics_service import (
     get_prediction_analytics,
     get_safety_analytics,
     get_alert_analytics,
-    get_safe_zone_analytics
+    get_safe_zone_analytics,
+    get_movement_analytics,
+  
 )
+
 
 router = APIRouter(
     prefix="/analytics",
     tags=["Analytics"]
 )
+
 
 
 @router.get("/overview/{user_id}")
@@ -33,6 +35,11 @@ def analytics_overview(
     current_user: User = Depends(get_current_user)
 ):
 
+    print("========== ANALYTICS ROUTE HIT ==========")
+    print("CURRENT USER:", current_user.id)
+    print("REQUEST USER:", user_id)
+
+
     if current_user.id != user_id:
 
         raise HTTPException(
@@ -40,10 +47,14 @@ def analytics_overview(
             detail="Unauthorized"
         )
 
+
     return get_overview(
         db,
         user_id
     )
+
+
+
 
 
 @router.get("/daily-distance/{user_id}")
@@ -60,10 +71,16 @@ def daily_distance(
             detail="Unauthorized"
         )
 
+
     return get_daily_distance(
         db,
         user_id
     )
+
+
+
+
+
 
 
 @router.get("/weekly-distance/{user_id}")
@@ -74,15 +91,23 @@ def weekly_distance(
 ):
 
     if current_user.id != user_id:
+
         raise HTTPException(
             status_code=403,
             detail="Unauthorized"
         )
 
+
     return get_weekly_distance(
         db,
         user_id
     )
+
+
+
+
+
+
 
 @router.get("/predictions/{user_id}")
 def prediction_analytics(
@@ -98,10 +123,17 @@ def prediction_analytics(
             detail="Unauthorized"
         )
 
+
     return get_prediction_analytics(
         db,
         user_id
     )
+
+
+
+
+
+
 
 @router.get("/safety/{user_id}")
 def safety_analytics(
@@ -111,15 +143,23 @@ def safety_analytics(
 ):
 
     if current_user.id != user_id:
+
         raise HTTPException(
             status_code=403,
             detail="Unauthorized"
         )
 
+
     return get_safety_analytics(
         db,
         user_id
     )
+
+
+
+
+
+
 
 @router.get("/alerts/{user_id}")
 def alert_analytics(
@@ -143,6 +183,11 @@ def alert_analytics(
 
 
 
+
+
+
+
+
 @router.get("/safe-zones/{user_id}")
 def safe_zone_analytics(
     user_id: int,
@@ -161,4 +206,60 @@ def safe_zone_analytics(
     return get_safe_zone_analytics(
         db,
         user_id
+    )
+
+
+
+
+
+
+
+
+# ======================================================
+# Movement Analytics
+# ======================================================
+
+@router.get("/movement/{user_id}")
+def movement_analytics(
+    user_id:int,
+    db:Session = Depends(get_db),
+    current_user:User = Depends(get_current_user)
+):
+
+    if current_user.id != user_id:
+
+        raise HTTPException(
+            status_code=403,
+            detail="Unauthorized"
+        )
+
+
+    return {
+
+        "user_id":user_id,
+
+        "movement":
+        get_movement_analytics(
+            db,
+            user_id
+        )
+
+    }
+
+@router.get("/family-movement")
+def family_movement(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    if current_user.role != "GUARDIAN":
+        raise HTTPException(
+            status_code=403,
+            detail="Only guardian allowed"
+        )
+
+
+    return get_family_movement(
+        db,
+        current_user.id
     )

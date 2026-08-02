@@ -9,7 +9,11 @@ from app.models.alert import Alert
 from app.models.prediction import Prediction
 
 from app.services.safety_service import get_safety_status
+from datetime import datetime, timedelta
+from app.models.user_guardian_relationship import UserGuardianRelationship
 
+
+from app.models.user import User
 
 EARTH_RADIUS = 6371000
 
@@ -362,6 +366,17 @@ def get_alert_analytics(
         ] += 1
 
 
+    
+
+
+    display_names = {
+    "UNKNOWN_LOCATION": "Unknown Location",
+    "LOCATION_WARNING": "Location Warning",
+    "SAFE_ZONE": "Safe Zone",
+    "PREDICTION_ALERT": "Prediction Alert",
+    "EMERGENCY": "Emergency"
+}
+
     return {
 
         "total_alerts": total_alerts,
@@ -371,12 +386,17 @@ def get_alert_analytics(
         "unread_alerts": unread_alerts,
 
         "alert_distribution": [
+
             {
-                "type": key,
+
+                "type": display_names.get(key, key.replace("_", " ").title()),
+
                 "count": value
+
             }
-            for key, value
-            in alert_types.items()
+
+            for key, value in alert_types.items()
+
         ]
     }
 
@@ -424,4 +444,359 @@ def get_safe_zone_analytics(
 
         "zones":
             zones
+    }
+
+def get_movement_analytics(
+    db,
+    user_id
+):
+
+    locations = (
+        db.query(Location)
+        .filter(
+            Location.user_id == user_id
+        )
+        .order_by(
+            Location.timestamp.asc()
+        )
+        .all()
+    )
+
+
+    result = {}
+
+
+    previous = None
+
+
+    for loc in locations:
+
+
+        day = loc.timestamp.strftime("%a")
+
+
+        if day not in result:
+
+            result[day] = 0
+
+
+
+        if previous:
+
+
+            lat1 = radians(previous.latitude)
+            lon1 = radians(previous.longitude)
+
+            lat2 = radians(loc.latitude)
+            lon2 = radians(loc.longitude)
+
+
+            dlat = lat2-lat1
+            dlon = lon2-lon1
+
+
+            a = (
+                sin(dlat/2)**2
+                +
+                cos(lat1)
+                *
+                cos(lat2)
+                *
+                sin(dlon/2)**2
+            )
+
+
+            c = 2 * atan2(
+                sqrt(a),
+                sqrt(1-a)
+            )
+
+
+            distance = 6371 * c
+
+
+            result[day] += distance
+
+
+
+        previous = loc
+
+
+
+    return [
+
+        {
+            "day":day,
+            "distance":round(distance,2)
+        }
+
+        for day,distance in result.items()
+
+    ]
+
+
+
+def get_family_movement(
+    db: Session,
+    guardian_id: int
+):
+
+    from app.models.user_guardian_relationship import UserGuardianRelationship
+
+    # Get all connected users
+    relations = (
+        db.query(UserGuardianRelationship)
+        .filter(
+            UserGuardianRelationship.guardian_id == guardian_id,
+            UserGuardianRelationship.status == "ACCEPTED"
+        )
+        .all()
+    )
+
+
+    users = []
+
+    daily_chart = {}
+    weekly_chart = {}
+    monthly_chart = {}
+    yearly_chart = {}
+
+
+
+    for relation in relations:
+
+
+        user = (
+            db.query(User)
+            .filter(
+                User.id == relation.user_id
+            )
+            .first()
+        )
+
+
+        if not user:
+            continue
+
+
+
+        user_name = user.full_name or user.email
+
+
+
+        users.append({
+
+            "user_id": user.id,
+
+            "user_name": user_name
+
+        })
+
+
+
+        locations = (
+            db.query(Location)
+            .filter(
+                Location.user_id == user.id
+            )
+            .order_by(
+                Location.timestamp.asc()
+            )
+            .all()
+        )
+
+
+
+        previous = None
+
+
+
+        for location in locations:
+
+
+            distance = 0
+
+
+
+            if previous:
+
+
+                distance = calculate_distance(
+
+                    previous.latitude,
+                    previous.longitude,
+
+                    location.latitude,
+                    location.longitude
+
+                ) / 1000
+
+
+
+            previous = location
+
+
+
+            timestamp = location.timestamp
+
+
+
+            # ======================
+            # DAILY
+            # ======================
+
+            day = timestamp.strftime("%a")
+
+
+            if day not in daily_chart:
+
+                daily_chart[day] = {
+
+                    "time": day
+
+                }
+
+
+            daily_chart[day][user_name] = round(
+
+                daily_chart[day].get(
+                    user_name,
+                    0
+                ) + distance,
+
+                2
+
+            )
+
+
+
+
+
+            # ======================
+            # WEEKLY
+            # ======================
+
+            week_number = timestamp.isocalendar().week
+
+
+            week = f"Week {week_number}"
+
+
+
+            if week not in weekly_chart:
+
+                weekly_chart[week] = {
+
+                    "time": week
+
+                }
+
+
+
+            weekly_chart[week][user_name] = round(
+
+                weekly_chart[week].get(
+                    user_name,
+                    0
+                ) + distance,
+
+                2
+
+            )
+
+
+
+
+
+            # ======================
+            # MONTHLY
+            # ======================
+
+            month = timestamp.strftime("%b")
+
+
+
+            if month not in monthly_chart:
+
+                monthly_chart[month] = {
+
+                    "time": month
+
+                }
+
+
+
+            monthly_chart[month][user_name] = round(
+
+                monthly_chart[month].get(
+                    user_name,
+                    0
+                ) + distance,
+
+                2
+
+            )
+
+
+
+
+
+            # ======================
+            # YEARLY
+            # ======================
+
+            year = str(timestamp.year)
+
+
+
+            if year not in yearly_chart:
+
+                yearly_chart[year] = {
+
+                    "time": year
+
+                }
+
+
+
+            yearly_chart[year][user_name] = round(
+
+                yearly_chart[year].get(
+                    user_name,
+                    0
+                ) + distance,
+
+                2
+
+            )
+
+
+
+
+
+    return {
+
+
+        "users": users,
+
+
+        "daily": list(
+            daily_chart.values()
+        ),
+
+
+        "weekly": list(
+            weekly_chart.values()
+        ),
+
+
+        "monthly": list(
+            monthly_chart.values()
+        ),
+
+
+        "yearly": list(
+            yearly_chart.values()
+        )
+
     }

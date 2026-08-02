@@ -5,12 +5,15 @@ from app.database.database import get_db
 
 from app.schemas.emergency_contact import (
     EmergencyContactCreate,
-    EmergencyContactResponse
+    EmergencyContactResponse,
+    EmergencyContactUpdate
 )
 
 from app.services.emergency_service import (
     add_contact,
-    get_contacts
+    get_contacts,
+    update_contact,
+    delete_contact
 )
 
 router = APIRouter(
@@ -41,3 +44,34 @@ def list_contacts(
         db,
         user_id
     )
+
+
+@router.put("/{contact_id}")
+def edit_contact(
+    contact_id: int,
+    contact: EmergencyContactUpdate,
+    db: Session = Depends(get_db)
+):
+
+    return update_contact(
+        db,
+        contact_id,
+        contact
+    )
+
+
+
+@router.delete("/{contact_id}")
+def remove_contact(
+    contact_id: int,
+    db: Session = Depends(get_db)
+):
+
+    result = delete_contact(
+        db,
+        contact_id
+    )
+
+    return {
+        "success": result
+    }

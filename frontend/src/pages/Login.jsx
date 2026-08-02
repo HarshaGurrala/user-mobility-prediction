@@ -55,21 +55,47 @@ function Login(){
         try{
 
 
-            await login(
-
+            const response = await login(
                 formData.email,
-
                 formData.password
-
             );
 
 
-            navigate("/dashboard");
+            console.log(
+                "LOGIN RESPONSE:",
+                response
+            );
+
+
+            const role =
+                response?.user?.role ||
+                response?.role;
+
+
+
+            if(role === "GUARDIAN"){
+
+                navigate("/guardian/");
+
+            }
+            else{
+
+                setError(
+                    "Only guardian accounts can login here"
+                );
+
+            }
 
 
         }
 
         catch(err){
+
+
+            console.log(
+                "LOGIN ERROR:",
+                err
+            );
 
 
             setError(

@@ -17,10 +17,38 @@ import com.usermobilityprediction.app.data.model.GuardianRequest
 import com.usermobilityprediction.app.data.model.UserDashboardResponse
 import com.usermobilityprediction.app.data.model.LocationRequest
 
+import com.usermobilityprediction.app.data.model.AnalyticsOverviewResponse
+import com.usermobilityprediction.app.data.model.DailyDistanceResponse
+import com.usermobilityprediction.app.data.model.WeeklyDistanceResponse
+import com.usermobilityprediction.app.data.model.PredictionAnalyticsResponse
+import com.usermobilityprediction.app.data.model.SafetyAnalyticsResponse
+import com.usermobilityprediction.app.data.model.AlertAnalyticsResponse
+import com.usermobilityprediction.app.data.model.SafeZoneAnalyticsResponse
+import com.usermobilityprediction.app.data.model.PredictionResponse
 
 import retrofit2.http.Path
+import com.usermobilityprediction.app.data.model.SearchUserResponse
+
+import com.usermobilityprediction.app.data.model.PendingRequestResponse
 
 interface ApiService {
+
+
+    @GET("user-dashboard/me")
+    suspend fun getUserDashboard(): Response<UserDashboardResponse>
+
+
+    @POST("location/update/{user_id}")
+    suspend fun uploadLocation(
+
+        @Path("user_id")
+        userId: Int,
+
+        @Body
+        request: LocationRequest
+
+    ): Response<Map<String, String>>
+
 
     @POST("auth/register")
     suspend fun register(
@@ -53,27 +81,99 @@ interface ApiService {
         @Body request: GuardianRequest
     ): Response<Map<String, String>>
 
-//    @GET("guardian/pending")
-//    suspend fun getPendingRequests():
-//            Response<List<PendingRequestResponse>>
+    // ===============================
+// USER - Pending Guardian Requests
+// ===============================
 
-//    @PUT("guardian/accept/{request_id}")
-//    suspend fun acceptGuardianRequest(
-//        @Path("request_id") requestId: Int
-//    ): Response<Map<String, String>>
+    @GET("guardian/pending")
+    suspend fun getPendingRequests():
+
+            Response<List<PendingRequestResponse>>
+
+
+
+// ===============================
+// USER accepts guardian request
+// ===============================
+
+    @PUT("guardian/accept/{request_id}")
+    suspend fun acceptGuardianRequest(
+
+        @Path("request_id")
+        requestId: Int
+
+    ): Response<Map<String, String>>
+
+
+
+// ===============================
+// USER rejects guardian request
+// ===============================
 
     @PUT("guardian/reject/{request_id}")
     suspend fun rejectGuardianRequest(
-        @Path("request_id") requestId: Int
+
+        @Path("request_id")
+        requestId: Int
+
     ): Response<Map<String, String>>
 
 
-    @GET("user-dashboard/me")
-    suspend fun getUserDashboard(): Response<UserDashboardResponse>
+    @GET("analytics/overview/{user_id}")
+    suspend fun getAnalyticsOverview(
+        @Path("user_id") userId: Int
+    ): Response<AnalyticsOverviewResponse>
 
-    @POST("location/update/{user_id}")
-    suspend fun uploadLocation(
-        @Path("user_id") userId: Int,
-        @Body request: LocationRequest
-    ): Response<Map<String, String>>
+
+    @GET("analytics/daily-distance/{user_id}")
+    suspend fun getDailyDistance(
+        @Path("user_id") userId: Int
+    ): Response<List<DailyDistanceResponse>>
+
+
+    @GET("analytics/weekly-distance/{user_id}")
+    suspend fun getWeeklyDistance(
+        @Path("user_id") userId: Int
+    ): Response<List<WeeklyDistanceResponse>>
+
+
+    @GET("analytics/predictions/{user_id}")
+    suspend fun getPredictionAnalytics(
+        @Path("user_id") userId: Int
+    ): Response<PredictionAnalyticsResponse>
+
+
+    @GET("analytics/safety/{user_id}")
+    suspend fun getSafetyAnalytics(
+        @Path("user_id") userId: Int
+    ): Response<SafetyAnalyticsResponse>
+
+
+    @GET("analytics/alerts/{user_id}")
+    suspend fun getAlertAnalytics(
+        @Path("user_id") userId: Int
+    ): Response<AlertAnalyticsResponse>
+
+
+    @GET("analytics/safe-zones/{user_id}")
+    suspend fun getSafeZoneAnalytics(
+        @Path("user_id") userId: Int
+    ): Response<SafeZoneAnalyticsResponse>
+
+
+    @GET("prediction/next/{user_id}")
+    suspend fun getNextPrediction(
+        @Path("user_id") userId: Int
+    ): Response<PredictionResponse>
+
+
+    @GET("users/search/{safe_path_id}")
+    suspend fun searchUser(
+
+        @Path("safe_path_id")
+        safePathId: String
+
+    ): Response<SearchUserResponse>
+
+
 }
