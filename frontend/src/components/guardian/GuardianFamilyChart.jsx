@@ -33,6 +33,7 @@ const [filter,setFilter] = useState("Daily");
 
 
 
+
 const colors = [
 
 "#60a5fa",
@@ -51,199 +52,95 @@ useEffect(()=>{
 
 const loadMovement = async()=>{
 
-
 try{
 
-
-const response = await getGuardianMovement();
-
-
-const movementUsers = response.users || response;
-
-
-setUsers(
-    movementUsers
+const response = await getGuardianMovement(
+    filter.toLowerCase()
 );
 
 
-
-// DAILY
-
-const dailyChart=[];
-
-
-movementUsers.forEach((user)=>{
+console.log("========== API RESPONSE ==========");
+console.log(response);
+console.log("==================================");
 
 
-user.movement?.forEach((item,index)=>{
+// users list
+const movementUsers = response.users || [];
+
+console.log("Movement Users");
+console.log(movementUsers);
 
 
-if(!dailyChart[index]){
+setUsers(movementUsers);
 
-dailyChart[index]={
-time:item.day
-};
+
+// chart source based on filter
+
+let chartSource = [];
+
+
+if(filter === "Daily"){
+
+    chartSource = response.daily || [];
+
+}
+else if(filter === "Weekly"){
+
+    chartSource = response.weekly || [];
+
+}
+else if(filter === "Monthly"){
+
+    chartSource = response.monthly || [];
+
+}
+else{
+
+    chartSource = response.yearly || [];
 
 }
 
 
-dailyChart[index][user.user_name]=
-item.distance;
+
+console.log("Chart Source");
+console.log(chartSource);
 
 
 
-});
+const chart = chartSource.map(item=>{
 
-
-});
-
-
-setData(dailyChart);
-
-
-
-
-
-// WEEKLY
-const weeklyChart=[];
-
-
-response.forEach((user)=>{
-
-    user.movement?.forEach((item,index)=>{
-
-
-        if(!weeklyChart[index]){
-
-            weeklyChart[index]={
-                time:`Week ${index+1}`
-            };
-
-        }
-
-
-        weeklyChart[index][user.user_name] =
-            item.distance;
-
-
-    });
-
+    return {
+        ...item
+    };
 
 });
 
 
-setWeeklyData(weeklyChart);
+console.log("FINAL CHART");
+console.log(chart);
 
 
 
+if(filter === "Daily"){
 
-
-
-
-
-
-
-// MONTHLY
-
-const months=[
-"Jan",
-"Feb",
-"Mar",
-"Apr",
-"May",
-"Jun",
-"Jul",
-"Aug",
-"Sep",
-"Oct",
-"Nov",
-"Dec"
-];
-
-
-const monthlyChart=[];
-
-movementUsers.forEach((user)=>{
-
-
-user.movement?.forEach((item,index)=>{
-
-
-if(!monthlyChart[index]){
-
-monthlyChart[index]={
-    time:months[index]
-};
+    setData(chart);
 
 }
+else if(filter === "Weekly"){
 
+    setWeeklyData(chart);
 
-monthlyChart[index][user.user_name] =
-Number(item.distance)*4;
+}
+else if(filter === "Monthly"){
 
+    setMonthlyData(chart);
 
-});
+}
+else{
 
+    setYearlyData(chart);
 
-});
-
-
-setMonthlyData(monthlyChart);
-
-
-
-
-
-
-
-// YEARLY
-
-const years=[
-2025,
-2026,
-2027
-];
-
-
-const yearlyChart=[];
-
-
-years.forEach((year,index)=>{
-
-
-const chartItem={
-    time:String(year)
-};
-
-
-movementUsers.forEach((user)=>{
-
-
-const total =
-user.movement.reduce(
-(sum,item)=>sum+Number(item.distance),
-0
-);
-
-
-chartItem[user.user_name] =
-Number(total.toFixed(2));
-
-
-});
-
-
-yearlyChart.push(chartItem);
-
-
-});
-
-
-
-
-
-setYearlyData(yearlyChart);
-
+}
 
 
 }
@@ -257,14 +154,13 @@ error
 
 }
 
-
 };
 
 
 loadMovement();
 
 
-},[]);
+},[filter]);
 
 
 
@@ -530,7 +426,7 @@ colors[index % colors.length]
 <div
 
 className="
-h-[320px]
+h-[420px]
 "
 
 >
@@ -545,27 +441,39 @@ height="100%"
 >
 
 
-<LineChart
-
-data={chartData}
-
->
-
+<LineChart data={chartData}>
+console.log("Users:", users);
+console.log("Chart Data:", chartData);
 
 <XAxis
-
-dataKey="time"
-
-stroke="#777"
-
+    dataKey="time"
+    stroke="#777"
+    interval={0}
+    angle={filter === "Monthly" ? -45 : 0}
+    textAnchor={filter === "Monthly" ? "end" : "middle"}
+    tick={{ 
+        fill:"#aaa",
+        fontSize:12
+    }}
 />
 
 
-
 <YAxis
-
-stroke="#777"
-
+    stroke="#777"
+    domain={[
+        0,
+        (dataMax) => Math.ceil(dataMax + 5)
+    ]}
+    tick={{ 
+        fill:"#aaa",
+        fontSize:12
+    }}
+    label={{
+        value:"Distance (KM)",
+        angle:-90,
+        position:"insideLeft",
+        fill:"#aaa"
+    }}
 />
 
 
@@ -680,6 +588,7 @@ users.map((user,index)=>(
  stroke={colors[index % colors.length]}
  strokeWidth={3}
  dot={{r:4}}
+ connectNulls={true}
  />
 
 

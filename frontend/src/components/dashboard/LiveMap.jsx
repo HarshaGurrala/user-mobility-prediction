@@ -167,10 +167,8 @@ font-semibold
             >
 
                 <TileLayer
-
-                    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-
-                />
+ url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+/>
 
                 {position && (
 

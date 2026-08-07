@@ -84,16 +84,20 @@ return response.data;
 
 
 
-export const getGuardianMovement = async ()=>{
+export const getGuardianMovement = async (filter)=>{
 
 const response = await API.get(
-"/guardian/movement-analytics"
+`/guardian/movement-analytics?filter=${filter}`
 );
 
 return response.data;
 
 };
 
+
+// export const getGuardianMovement = async (filter) => {
+//     return API.get(`/guardian/movement-analytics?filter=${filter}`);
+// };
 
 
 

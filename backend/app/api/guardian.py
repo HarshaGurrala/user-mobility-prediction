@@ -519,19 +519,19 @@ def guardian_user_details(
 
 @router.get("/movement-analytics")
 def guardian_movement_analytics(
+    filter: str = "weekly",
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
 
     if current_user.role != "GUARDIAN":
-
         raise HTTPException(
             status_code=403,
             detail="Only guardian can view movement analytics."
         )
 
-
     return get_guardian_movement_analytics(
         db=db,
-        guardian_id=current_user.id
+        guardian_id=current_user.id,
+        filter=filter
     )

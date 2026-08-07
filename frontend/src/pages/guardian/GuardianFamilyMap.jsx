@@ -49,10 +49,12 @@ Number(user.longitude)
 if(locations.length > 0){
 
 map.fitBounds(
-locations,
-{
-padding:[50,50]
-}
+    locations,
+    {
+        padding:[100,100],
+        animate:true,
+        duration:7
+    }
 );
 
 }
@@ -310,11 +312,7 @@ width:"100%"
 
 
 <TileLayer
-
-url="
-https://tile.openstreetmap.org/{z}/{x}/{y}.png
-"
-
+ url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 />
 
 
