@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+
+import com.usermobilityprediction.app.data.storage.TokenManager
 import com.usermobilityprediction.app.navigation.Routes
 import com.usermobilityprediction.app.ui.landing.AnimatedBackground
 import com.usermobilityprediction.app.ui.landing.HeroContent
@@ -20,6 +23,18 @@ import com.usermobilityprediction.app.ui.landing.LandingFooter
 fun LandingScreen(
     navController: NavController
 ) {
+
+    val context =
+        androidx.compose.ui.platform.LocalContext.current
+
+    val tokenManager =
+        remember {
+            TokenManager(context)
+        }
+    val isLoggedIn = tokenManager.getToken() != null
+
+
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -29,47 +44,71 @@ fun LandingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(
+                    rememberScrollState()
+                )
                 .padding(
                     top = 40.dp,
                     bottom = 30.dp
                 ),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment =
+                Alignment.CenterHorizontally
         ) {
 
             HeroVisual()
 
             Spacer(
-                modifier = Modifier.height(30.dp)
+                modifier =
+                    Modifier.height(30.dp)
             )
 
             HeroContent(
-                navController = navController
+                navController =
+                    navController
             )
 
             Spacer(
-                modifier = Modifier.height(40.dp)
+                modifier =
+                    Modifier.height(40.dp)
             )
 
             LandingFeatureSection()
 
             Spacer(
-                modifier = Modifier.height(40.dp)
+                modifier =
+                    Modifier.height(40.dp)
             )
 
-            LandingCTASection(
-                onLoginClick = {
-                    navController.navigate(Routes.LOGIN)
-                },
-                onRegisterClick = {
-                    navController.navigate(Routes.REGISTER)
-                }
-            )
+
+            // Show Login / Create Account
+            // ONLY when user is logged out
+
+            if (!isLoggedIn) {
+
+                LandingCTASection(
+
+                    onLoginClick = {
+
+                        navController.navigate(
+                            Routes.LOGIN
+                        )
+                    },
+
+                    onRegisterClick = {
+
+                        navController.navigate(
+                            Routes.REGISTER
+                        )
+                    }
+                )
+            }
+
 
             LandingFooter()
 
             Spacer(
-                modifier = Modifier.height(30.dp)
+                modifier =
+                    Modifier.height(30.dp)
             )
         }
     }

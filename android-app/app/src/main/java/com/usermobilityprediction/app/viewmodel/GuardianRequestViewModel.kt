@@ -8,7 +8,7 @@ import com.usermobilityprediction.app.data.repository.GuardianRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
+import com.usermobilityprediction.app.data.model.ConnectedGuardianResponse
 
 class GuardianRequestViewModel : ViewModel() {
 
@@ -16,7 +16,12 @@ class GuardianRequestViewModel : ViewModel() {
     private val repository =
         GuardianRepository()
 
+    private val _connectedGuardians =
+        MutableStateFlow<List<ConnectedGuardianResponse>>(emptyList())
 
+    val connectedGuardians:
+            StateFlow<List<ConnectedGuardianResponse>> =
+        _connectedGuardians
 
     private val _requests =
         MutableStateFlow<List<PendingRequestResponse>>(
@@ -224,6 +229,39 @@ class GuardianRequestViewModel : ViewModel() {
         }
 
 
+    }
+
+
+
+    fun loadConnectedGuardians() {
+
+        viewModelScope.launch {
+
+            try {
+
+                val response =
+                    repository.getMyGuardians()
+
+                if (response.isSuccessful) {
+
+                    _connectedGuardians.value =
+                        response.body() ?: emptyList()
+
+                } else {
+
+                    _error.value =
+                        response.errorBody()
+                            ?.string()
+                            ?: "Unable to load connected guardians"
+                }
+
+            } catch (e: Exception) {
+
+                _error.value =
+                    e.localizedMessage
+                        ?: "Network Error"
+            }
+        }
     }
 
 }

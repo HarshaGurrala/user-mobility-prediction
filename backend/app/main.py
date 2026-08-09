@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database.database import Base, engine
 from app.database import base
 
+Base.metadata.create_all(bind=engine)
+from app.database import base
 from app.api.auth import router as auth_router
 from app.api.emergency import router as emergency_router
 from app.api.safe_location import router as safe_location_router
@@ -43,7 +45,7 @@ app.add_middleware(
 # DATABASE TABLES
 # ============================================================
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 
 # ============================================================

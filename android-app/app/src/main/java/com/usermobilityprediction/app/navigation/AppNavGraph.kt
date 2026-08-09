@@ -11,6 +11,13 @@ import com.usermobilityprediction.app.ui.screens.LoginScreen
 import com.usermobilityprediction.app.ui.screens.RegisterScreen
 import com.usermobilityprediction.app.ui.screens.SettingsScreen
 import com.usermobilityprediction.app.ui.screens.GuardianConnectScreen
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.usermobilityprediction.app.data.storage.TokenManager
+import com.usermobilityprediction.app.ui.screens.ResetPasswordScreen
+import com.usermobilityprediction.app.ui.screens.ForgotPasswordScreen
+
+
 
 
 @Composable
@@ -18,9 +25,24 @@ fun AppNavGraph(
     navController: NavHostController
 ) {
 
+    val context = LocalContext.current
+
+    val tokenManager = remember {
+        TokenManager(context.applicationContext)
+    }
+
+    val isLoggedIn = tokenManager.isLoggedIn()
+
+    val startDestination =
+        if (isLoggedIn) {
+            Routes.APP_SHELL
+        } else {
+            Routes.LANDING
+        }
+
     NavHost(
         navController = navController,
-        startDestination = Routes.LANDING
+        startDestination = startDestination
     ) {
 
         composable(Routes.LANDING) {
@@ -74,18 +96,28 @@ fun AppNavGraph(
                     ?.getString("contact_id")
                     ?.toIntOrNull()
                     ?: 0
+        }
 
+        composable("forgot-password") {
 
+            ForgotPasswordScreen(
+                navController = navController
+            )
+        }
 
+        composable(
+            route = "reset-password?token={token}"
+        ) { backStackEntry ->
 
+            val token =
+                backStackEntry.arguments
+                    ?.getString("token")
+                    ?: ""
 
-
-//            EditEmergencyContactScreen(
-//                navController = navController,
-//                contactId = contactId,
-//                userId = userId ?: 0
-//            )
-
+            ResetPasswordScreen(
+                navController = navController,
+                token = token
+            )
         }
 
         composable(
@@ -97,5 +129,7 @@ fun AppNavGraph(
             )
 
         }
+
+
     }
 }

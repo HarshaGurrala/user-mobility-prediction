@@ -51,8 +51,8 @@ if(locations.length > 0){
 map.fitBounds(
     locations,
     {
-        padding:[100,100],
-        animate:true,
+        padding:[50,50],
+        // animate:true,
         duration:7
     }
 );

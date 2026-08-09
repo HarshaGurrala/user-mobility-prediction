@@ -30,6 +30,12 @@ import retrofit2.http.Path
 import com.usermobilityprediction.app.data.model.SearchUserResponse
 
 import com.usermobilityprediction.app.data.model.PendingRequestResponse
+import com.usermobilityprediction.app.data.model.ConnectedGuardianResponse
+
+
+import com.usermobilityprediction.app.data.model.ResetPasswordRequest
+import com.usermobilityprediction.app.data.model.ForgotPasswordRequest
+import com.usermobilityprediction.app.data.model.ForgotPasswordResponse
 
 interface ApiService {
 
@@ -175,5 +181,21 @@ interface ApiService {
 
     ): Response<SearchUserResponse>
 
+
+    @GET("guardian/my-guardians")
+    suspend fun getMyGuardians():
+            Response<List<ConnectedGuardianResponse>>
+
+
+    @PUT("auth/reset-password")
+    suspend fun resetPassword(
+        @Body request: ResetPasswordRequest
+    ): Response<Map<String, String>>
+
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): Response<ForgotPasswordResponse>
 
 }

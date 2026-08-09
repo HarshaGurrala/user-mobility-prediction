@@ -3,12 +3,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 from app.core.config import settings
 
-
 from urllib.parse import quote_plus
 
 
 password = quote_plus(settings.DB_PASSWORD)
-
 
 DATABASE_URL = (
     f"mysql+pymysql://{settings.DB_USER}:"
@@ -23,16 +21,13 @@ engine = create_engine(
     echo=True
 )
 
-
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-
 Base = declarative_base()
-
 
 
 def get_db():

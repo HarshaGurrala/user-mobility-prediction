@@ -5,7 +5,7 @@ import com.usermobilityprediction.app.data.model.SearchUserResponse
 import com.usermobilityprediction.app.data.model.PendingRequestResponse
 import com.usermobilityprediction.app.data.network.RetrofitClient
 import retrofit2.Response
-
+import com.usermobilityprediction.app.data.model.ConnectedGuardianResponse
 
 class GuardianRepository {
 
@@ -97,6 +97,13 @@ class GuardianRepository {
 
         )
 
+    }
+
+
+    suspend fun getMyGuardians():
+            Response<List<ConnectedGuardianResponse>> {
+
+        return RetrofitClient.api.getMyGuardians()
     }
 
 }

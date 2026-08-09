@@ -35,7 +35,7 @@ import com.usermobilityprediction.app.ui.components.GlassTextField
 import com.usermobilityprediction.app.ui.components.PasswordTextField
 import com.usermobilityprediction.app.ui.components.PrimaryButton
 import com.usermobilityprediction.app.viewmodel.LoginViewModel
-
+import androidx.compose.material3.TextButton
 
 
 
@@ -257,6 +257,9 @@ fun LoginScreen(
                         )
                     }
 
+
+
+
                     PrimaryButton(
 
                         text =
@@ -309,6 +312,17 @@ fun LoginScreen(
                             }
                         }
                     )
+
+                    TextButton(
+                        onClick = {
+                            navController.navigate("forgot-password")
+                        }
+                    ) {
+                        Text(
+                            text = "Forgot Password?",
+                            color = Color(0xFF3B82F6)
+                        )
+                    }
 
                     Spacer(
                         modifier =

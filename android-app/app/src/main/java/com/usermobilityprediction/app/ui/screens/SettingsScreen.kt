@@ -17,12 +17,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.usermobilityprediction.app.navigation.Routes
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.usermobilityprediction.app.viewmodel.GuardianRequestViewModel
 @Composable
 fun SettingsScreen(
     navController: NavController
 
 ) {
+
 
     var locationTracking by remember {
         mutableStateOf(true)
@@ -34,9 +36,13 @@ fun SettingsScreen(
 
     val requests by guardianViewModel.requests.collectAsState()
 
+    val connectedGuardians by
+    guardianViewModel.connectedGuardians.collectAsState()
     LaunchedEffect(Unit) {
 
         guardianViewModel.loadRequests()
+
+        guardianViewModel.loadConnectedGuardians()
 
     }
 
@@ -103,6 +109,113 @@ fun SettingsScreen(
                 }
             )
 
+//            if (connectedGuardians.isNotEmpty()) {
+//                Spacer(
+//                    modifier = Modifier.height(8.dp)
+//                )
+//
+//                Text(
+//                    text = "Connected Guardians",
+//                    color = Color.White,
+//                    style = MaterialTheme.typography.titleSmall,
+//                    modifier = Modifier.padding(
+//                        top = 8.dp,
+//                        bottom = 8.dp
+//                    )
+//                )
+//
+//                connectedGuardians.forEach { guardian ->
+//
+//                    Card(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(vertical = 5.dp),
+//
+//                        shape = RoundedCornerShape(16.dp),
+//
+//                        colors = CardDefaults.cardColors(
+//                            containerColor =
+//                                Color.White.copy(alpha = 0.05f)
+//                        )
+//                    ) {
+//
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(16.dp),
+//
+//                            verticalAlignment =
+//                                Alignment.CenterVertically
+//                        ) {
+//
+//                            Icon(
+//                                imageVector =
+//                                    Icons.Default.Person,
+//
+//                                contentDescription = null,
+//
+//                                tint =
+//                                    Color(0xFF3B82F6),
+//
+//                                modifier =
+//                                    Modifier.size(32.dp)
+//                            )
+//
+//                            Spacer(
+//                                modifier =
+//                                    Modifier.width(16.dp)
+//                            )
+//
+//                            Column(
+//                                modifier =
+//                                    Modifier.weight(1f)
+//                            ) {
+//
+//                                Text(
+//                                    text = guardian.name,
+//                                    color = Color.White,
+//                                    style =
+//                                        MaterialTheme.typography.titleMedium
+//                                )
+//
+//                                Text(
+//                                    text = guardian.email,
+//                                    color = Color.Gray,
+//                                    style =
+//                                        MaterialTheme.typography.bodySmall
+//                                )
+//
+//                                guardian.phone?.let {
+//
+//                                    Text(
+//                                        text = it,
+//                                        color = Color.Gray,
+//                                        style =
+//                                            MaterialTheme.typography.bodySmall
+//                                    )
+//                                }
+//
+//                                Text(
+//                                    text = "SafePath ID: ${guardian.safe_path_id}",
+//                                    color = Color.Gray,
+//                                    style =
+//                                        MaterialTheme.typography.bodySmall
+//                                )
+//                            }
+//
+//                            Text(
+//                                text = "Connected",
+//                                color = Color(0xFF22C55E),
+//                                style =
+//                                    MaterialTheme.typography.bodySmall
+//                            )
+//                        }
+//                    }
+//                }
+//
+//
+//            }
+
             SettingsItem(
                 icon = Icons.Default.Lock,
                 title = "Change Password",
@@ -165,6 +278,118 @@ fun SettingsScreen(
 
                 }
             )
+//            if (connectedGuardians.isNotEmpty()) {
+//
+//                Spacer(
+//                    modifier = Modifier.height(8.dp)
+//                )
+//
+//                Text(
+//                    text = "Connected Guardians",
+//                    color = Color.White,
+//                    style = MaterialTheme.typography.titleSmall,
+//                    modifier = Modifier.padding(
+//                        start = 42.dp,
+//                        top = 8.dp,
+//                        bottom = 8.dp
+//                    )
+//                )
+//
+//                connectedGuardians.forEach { guardian ->
+//
+//                    Card(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(
+//                                start = 42.dp,
+//                                vertical = 5.dp
+//                            ),
+//
+//                        shape = RoundedCornerShape(16.dp),
+//
+//                        colors = CardDefaults.cardColors(
+//                            containerColor =
+//                                Color.White.copy(alpha = 0.05f)
+//                        )
+//                    ) {
+//
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(16.dp),
+//
+//                            verticalAlignment =
+//                                Alignment.CenterVertically
+//                        ) {
+//
+//                            Icon(
+//                                imageVector =
+//                                    Icons.Default.Person,
+//
+//                                contentDescription = null,
+//
+//                                tint =
+//                                    Color(0xFF3B82F6),
+//
+//                                modifier =
+//                                    Modifier.size(32.dp)
+//                            )
+//
+//                            Spacer(
+//                                modifier =
+//                                    Modifier.width(16.dp)
+//                            )
+//
+//                            Column(
+//                                modifier =
+//                                    Modifier.weight(1f)
+//                            ) {
+//
+//                                Text(
+//                                    text = guardian.name,
+//                                    color = Color.White,
+//                                    style =
+//                                        MaterialTheme.typography.titleMedium
+//                                )
+//
+//                                Text(
+//                                    text = guardian.email,
+//                                    color = Color.Gray,
+//                                    style =
+//                                        MaterialTheme.typography.bodySmall
+//                                )
+//
+//                                guardian.phone?.let {
+//
+//                                    Text(
+//                                        text = it,
+//                                        color = Color.Gray,
+//                                        style =
+//                                            MaterialTheme.typography.bodySmall
+//                                    )
+//                                }
+//
+//                                Text(
+//                                    text =
+//                                        "SafePath ID: ${guardian.safe_path_id}",
+//
+//                                    color = Color.Gray,
+//
+//                                    style =
+//                                        MaterialTheme.typography.bodySmall
+//                                )
+//                            }
+//
+//                            Text(
+//                                text = "Connected",
+//                                color = Color(0xFF22C55E),
+//                                style =
+//                                    MaterialTheme.typography.bodySmall
+//                            )
+//                        }
+//                    }
+//                }
+//            }
 
             SettingsItem(
                 icon = Icons.Default.Group,
@@ -176,6 +401,9 @@ fun SettingsScreen(
                     )
                 }
             )
+
+
+
 
             SettingsItem(
                 icon = Icons.Default.Warning,

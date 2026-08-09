@@ -32,7 +32,7 @@ import com.usermobilityprediction.app.ui.screens.EditProfileScreen
 import com.usermobilityprediction.app.ui.screens.ChangePasswordScreen
 import com.usermobilityprediction.app.ui.screens.GuardianScreen
 import com.usermobilityprediction.app.ui.screens.EmergencyContactsScreen
-
+import com.usermobilityprediction.app.ui.screens.LandingScreen
 import com.usermobilityprediction.app.ui.screens.EditEmergencyContactScreen
 import com.usermobilityprediction.app.ui.screens.SafeZonesScreen
 import com.usermobilityprediction.app.ui.screens.AddSafeZoneScreen
@@ -66,21 +66,23 @@ fun AppShell(
             NavigationBar {
 
                 NavigationBarItem(
-                    selected = false,
+                    selected = currentRoute == Routes.LANDING,
+
                     onClick = {
 
-                        rootNavController.navigate(Routes.LANDING) {
-
-                            popUpTo(Routes.APP_SHELL) {
-                                inclusive = true
-                            }
-
+                        navController.navigate(Routes.LANDING) {
+                            launchSingleTop = true
                         }
 
                     },
+
                     icon = {
-                        Icon(Icons.Default.Home, null)
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = null
+                        )
                     },
+
                     label = {
                         Text("Home")
                     }
@@ -155,10 +157,18 @@ fun AppShell(
 
         NavHost(
             navController = navController,
-            startDestination = Routes.HOME,
+            startDestination = Routes.DASHBOARD,
             modifier = Modifier
                 .padding(innerPadding)
         ) {
+
+            composable(Routes.LANDING) {
+
+                LandingScreen(
+                    navController = navController
+                )
+
+            }
 
             composable(Routes.HOME) {
 
@@ -188,7 +198,11 @@ fun AppShell(
             }
 
             composable(Routes.PROFILE) {
-                ProfileScreen(navController)
+
+                ProfileScreen(
+                    navController = navController,
+                    rootNavController = rootNavController
+                )
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(

@@ -35,26 +35,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
-import com.usermobilityprediction.app.viewmodel.EmergencyContactViewModel
-
+import com.usermobilityprediction.app.viewmodel.ConnectedGuardianViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GuardianScreen(
     navController: NavController,
     userId: Int,
-    viewModel: EmergencyContactViewModel = viewModel()
+    viewModel: ConnectedGuardianViewModel = viewModel()
 ) {
 
-    val contacts by viewModel.contacts.collectAsState()
+    val guardians by viewModel.guardians.collectAsState()
 
+    LaunchedEffect(Unit) {
 
-    LaunchedEffect(userId) {
-
-        viewModel.loadContacts(userId)
+        viewModel.loadGuardians()
 
     }
-
 
     Scaffold(
 
@@ -102,9 +99,7 @@ fun GuardianScreen(
 
     ) { padding ->
 
-
-        if (contacts.isEmpty()) {
-
+        if (guardians.isEmpty()) {
 
             Box(
 
@@ -123,9 +118,7 @@ fun GuardianScreen(
 
             }
 
-
         } else {
-
 
             LazyColumn(
 
@@ -134,13 +127,12 @@ fun GuardianScreen(
                     .padding(padding)
                     .padding(16.dp),
 
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
 
             ) {
 
-
-                items(contacts) { contact ->
-
+                items(guardians) { guardian ->
 
                     Card(
 
@@ -150,12 +142,13 @@ fun GuardianScreen(
                         colors = CardDefaults.cardColors(
 
                             containerColor =
-                                Color.White.copy(alpha = 0.05f)
+                                Color.White.copy(
+                                    alpha = 0.05f
+                                )
 
                         )
 
                     ) {
-
 
                         Column(
 
@@ -164,85 +157,97 @@ fun GuardianScreen(
 
                         ) {
 
-
                             Icon(
 
-                                imageVector = Icons.Default.Person,
+                                imageVector =
+                                    Icons.Default.Person,
 
                                 contentDescription = null,
 
-                                tint = Color(0xFF3B82F6)
+                                tint =
+                                    Color(0xFF3B82F6)
 
                             )
-
 
                             HorizontalDivider(
 
                                 modifier = Modifier
-                                    .padding(vertical = 10.dp),
+                                    .padding(
+                                        vertical = 10.dp
+                                    ),
 
                                 color = Color.DarkGray
 
                             )
-
-
-                            Text(
-
-                                text = contact.name ?: "Unknown Contact",
-
-                                style = MaterialTheme.typography.titleMedium,
-
-                                color = Color.White
-
-                            )
-
 
                             Text(
 
                                 text =
-                                    "Relationship: ${contact.relationshipType ?: "Guardian"}",
+                                    guardian.name,
 
-                                color = Color.Gray
+                                style =
+                                    MaterialTheme.typography
+                                        .titleMedium,
+
+                                color =
+                                    Color.White
 
                             )
-
 
                             Text(
 
-                                text = "Status : Connected",
+                                text =
+                                    "Status : ${guardian.status}",
 
-                                color = Color.Gray
+                                color =
+                                    Color(0xFF22C55E)
 
                             )
 
+                            Text(
+
+                                text =
+                                    "SafePath ID: ${
+                                        guardian.safe_path_id
+                                            ?: "Not available"
+                                    }",
+
+                                color =
+                                    Color.Gray
+
+                            )
 
                             HorizontalDivider(
 
                                 modifier = Modifier
-                                    .padding(vertical = 10.dp),
+                                    .padding(
+                                        vertical = 10.dp
+                                    ),
 
                                 color = Color.DarkGray
 
                             )
 
-
                             ContactInfoRow(
 
-                                icon = Icons.Default.Phone,
+                                icon =
+                                    Icons.Default.Phone,
 
-                                text = contact.phoneNumber ?: "No phone number"
+                                text =
+                                    guardian.phone
+                                        ?: "No phone number"
 
                             )
 
-
                             ContactInfoRow(
 
-                                icon = Icons.Default.Email,
+                                icon =
+                                    Icons.Default.Email,
 
-                                text = contact.email ?: "No email"
+                                text =
+                                    guardian.email
 
                             )
-
 
                         }
 
@@ -255,9 +260,7 @@ fun GuardianScreen(
         }
 
     }
-
 }
-
 
 
 @Composable
@@ -275,10 +278,10 @@ fun ContactInfoRow(
             .fillMaxWidth()
             .padding(vertical = 5.dp),
 
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment =
+            Alignment.CenterVertically
 
     ) {
-
 
         Icon(
 
@@ -289,7 +292,6 @@ fun ContactInfoRow(
             tint = Color.Gray
 
         )
-
 
         Text(
 

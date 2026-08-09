@@ -587,7 +587,7 @@ users.map((user,index)=>(
  dataKey={user.user_name}
  stroke={colors[index % colors.length]}
  strokeWidth={3}
- dot={{r:4}}
+ dot={{r:2}}
  connectNulls={true}
  />
 

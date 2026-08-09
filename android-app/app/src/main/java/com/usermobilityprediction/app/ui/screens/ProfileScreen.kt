@@ -46,14 +46,22 @@ import androidx.navigation.NavController
 import com.usermobilityprediction.app.data.storage.TokenManager
 import com.usermobilityprediction.app.navigation.Routes
 import com.usermobilityprediction.app.viewmodel.ProfileViewModel
+import android.content.Intent
+import com.usermobilityprediction.app.data.location.LocationTrackingService
+
+
+
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
+    rootNavController: NavController,
     profileViewModel: ProfileViewModel = viewModel()
-) {
+){
 
     val context = LocalContext.current
+
+
 
     val tokenManager = TokenManager(
         context.applicationContext
@@ -550,16 +558,37 @@ fun ProfileScreen(
 
                     onClick = {
 
-                        // Clear JWT token
-                        tokenManager.clearToken()
+                        // =====================================
+                        // 1. STOP LOCATION TRACKING SERVICE
+                        // =====================================
 
-                        // Navigate to Login
-                        // and clear navigation stack
-                        navController.navigate(
-                            Routes.LOGIN
+                        val intent = Intent(
+                            context,
+                            LocationTrackingService::class.java
+                        )
+
+                        context.stopService(intent)
+
+
+                        // =====================================
+                        // 2. CLEAR COMPLETE AUTH SESSION
+                        // =====================================
+
+                        tokenManager.clearAll()
+
+
+                        // =====================================
+                        // 3. CLEAR ROOT AUTHENTICATED STACK
+                        // =====================================
+
+                        rootNavController.navigate(
+                            Routes.LANDING
                         ) {
 
-                            popUpTo(0) {
+                            popUpTo(
+                                rootNavController.graph.startDestinationId
+                            ) {
+
                                 inclusive = true
                             }
 

@@ -13,8 +13,8 @@ import com.usermobilityprediction.app.data.network.RetrofitClient
 import android.app.Application
 import android.content.Intent
 import androidx.core.content.ContextCompat
-import com.usermobilityprediction.app.data.location.LocationForegroundService
 
+import com.usermobilityprediction.app.data.location.LocationTrackingService
 
 
 class LoginViewModel(
@@ -103,15 +103,15 @@ class LoginViewModel(
                                 user.role
                             )
 
-//                            val intent = Intent(
-//                                getApplication(),
-//                                LocationForegroundService::class.java
-//                            )
-//
-//                            ContextCompat.startForegroundService(
-//                                getApplication(),
-//                                intent
-//                            )
+                            val intent = Intent(
+                                getApplication(),
+                                LocationTrackingService::class.java
+                            )
+
+                            ContextCompat.startForegroundService(
+                                getApplication(),
+                                intent
+                            )
 
                             _success.value = true
 

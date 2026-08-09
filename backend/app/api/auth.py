@@ -2,6 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
+from app.schemas.password_reset import ForgotPasswordRequest
+from app.services.password_reset_service import create_password_reset
+from app.schemas.password_reset import ResetPasswordRequest
+from app.services.password_reset_service import reset_password
+from fastapi.responses import RedirectResponse
+
 
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -264,3 +270,52 @@ def change_password(
     return {
         "message": "Password changed successfully"
     }
+
+
+@router.post("/forgot-password")
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+
+    create_password_reset(
+        db=db,
+        email=request.email
+    )
+
+    return {
+        "message": (
+            "If an account exists with this email, "
+            "a password reset link has been sent."
+        )
+    }
+
+
+@router.put("/reset-password")
+def reset_password_endpoint(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+
+    success, message = reset_password(
+        db=db,
+        token=request.token,
+        new_password=request.new_password
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail=message
+        )
+
+    return {
+        "message": message
+    }
+
+@router.get("/reset-password-link")
+def reset_password_link(token: str):
+
+    return RedirectResponse(
+        url=f"safepathai://reset-password?token={token}"
+    )
