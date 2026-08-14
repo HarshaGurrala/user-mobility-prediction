@@ -9,6 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+import android.content.Context
+import android.net.Uri
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+
 class ProfileViewModel : ViewModel() {
 
     private val repository = AuthRepository()
@@ -190,4 +197,100 @@ class ProfileViewModel : ViewModel() {
 
         _updateError.value = null
     }
+
+
+    fun uploadProfilePicture(
+        context: Context,
+        uri: Uri
+    ) {
+
+        viewModelScope.launch {
+
+            _updateLoading.value = true
+
+            _updateError.value = null
+
+            try {
+
+                val inputStream =
+                    context.contentResolver.openInputStream(uri)
+
+                if (inputStream == null) {
+
+                    _updateError.value =
+                        "Unable to read selected image"
+
+                    return@launch
+                }
+
+                val file = File(
+                    context.cacheDir,
+                    "profile_picture.jpg"
+                )
+
+                inputStream.use { input ->
+
+                    file.outputStream().use { output ->
+
+                        input.copyTo(output)
+                    }
+                }
+
+                val requestBody =
+                    file.asRequestBody(
+                        "image/jpeg".toMediaType()
+                    )
+
+                val multipart =
+                    MultipartBody.Part.createFormData(
+                        "profile_picture",
+                        file.name,
+                        requestBody
+                    )
+
+                val response =
+                    repository.uploadProfilePicture(
+                        multipart
+                    )
+
+                if (response.isSuccessful) {
+
+                    val updatedUser =
+                        response.body()
+
+                    if (updatedUser != null) {
+
+                        _user.value =
+                            updatedUser
+
+                        _updateSuccess.value =
+                            true
+
+                    } else {
+
+                        _updateError.value =
+                            "Invalid server response"
+                    }
+
+                } else {
+
+                    _updateError.value =
+                        response.errorBody()
+                            ?.string()
+                            ?: "Failed to upload profile picture"
+                }
+
+            } catch (e: Exception) {
+
+                _updateError.value =
+                    e.localizedMessage
+                        ?: "Unable to upload profile picture"
+
+            } finally {
+
+                _updateLoading.value = false
+            }
+        }
+    }
 }
+

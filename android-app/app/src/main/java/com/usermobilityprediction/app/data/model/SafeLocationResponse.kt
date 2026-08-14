@@ -14,5 +14,4 @@ data class SafeLocationResponse(
     val longitude: Double,
 
     val radius: Double
-
 )

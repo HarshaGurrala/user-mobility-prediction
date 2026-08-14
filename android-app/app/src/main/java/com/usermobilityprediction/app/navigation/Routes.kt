@@ -30,18 +30,8 @@ object Routes {
     const val SAFE_ZONES = "safe_zones"
 
 
-
-
-
-
-    const val EMERGENCY_CONTACTS = "emergency_contacts"
-
-    const val ADD_EMERGENCY_CONTACT = "add_emergency_contact"
-
-
-
-    const val EDIT_EMERGENCY_CONTACT =
-        "edit_emergency_contact/{contact_id}/{name}/{relationship}/{phone}/{email}"
+    const val EMERGENCY_CONTACTS =
+        "emergency_contacts/{userId}"
 
 
 }

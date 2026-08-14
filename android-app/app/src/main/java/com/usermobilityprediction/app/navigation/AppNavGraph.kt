@@ -16,15 +16,14 @@ import androidx.compose.ui.platform.LocalContext
 import com.usermobilityprediction.app.data.storage.TokenManager
 import com.usermobilityprediction.app.ui.screens.ResetPasswordScreen
 import com.usermobilityprediction.app.ui.screens.ForgotPasswordScreen
-
-
-
+import com.usermobilityprediction.app.ui.screens.EmergencyContactsScreen
+import com.usermobilityprediction.app.ui.screens.SafeZonesScreen
+import com.usermobilityprediction.app.ui.screens.NotificationsScreen
 
 @Composable
 fun AppNavGraph(
     navController: NavHostController
 ) {
-
     val context = LocalContext.current
 
     val tokenManager = remember {
@@ -32,6 +31,8 @@ fun AppNavGraph(
     }
 
     val isLoggedIn = tokenManager.isLoggedIn()
+
+    val userId = tokenManager.getUserId()
 
     val startDestination =
         if (isLoggedIn) {
@@ -81,22 +82,39 @@ fun AppNavGraph(
             )
         }
 
+        composable(Routes.SAFE_ZONES) {
+
+            SafeZonesScreen(
+                navController = navController,
+                userId = userId ?: 0
+            )
+        }
+
+        composable("notifications") {
+
+            NotificationsScreen(
+                navController = navController
+            )
+        }
+
+
+
         composable(Routes.CHANGE_PASSWORD) {
             ChangePasswordScreen(
                 navController = navController
             )
         }
 
-        composable(
-            Routes.EDIT_EMERGENCY_CONTACT
-        ) { backStackEntry ->
-
-            val contactId =
-                backStackEntry.arguments
-                    ?.getString("contact_id")
-                    ?.toIntOrNull()
-                    ?: 0
-        }
+//        composable(
+//            Routes.EDIT_EMERGENCY_CONTACT
+//        ) { backStackEntry ->
+//
+//            val contactId =
+//                backStackEntry.arguments
+//                    ?.getString("contact_id")
+//                    ?.toIntOrNull()
+//                    ?: 0
+//        }
 
         composable("forgot-password") {
 
@@ -120,6 +138,9 @@ fun AppNavGraph(
             )
         }
 
+
+
+
         composable(
             route = "guardian_connect"
         ) {
@@ -128,6 +149,24 @@ fun AppNavGraph(
                 navController = navController
             )
 
+        }
+
+        composable(
+            route = Routes.EMERGENCY_CONTACTS
+        ) { backStackEntry ->
+
+            val userId = backStackEntry.arguments
+                ?.getString("userId")
+                ?.toIntOrNull()
+
+            if (userId != null) {
+
+                EmergencyContactsScreen(
+                    navController = navController,
+                    userId = userId
+                )
+
+            }
         }
 
 

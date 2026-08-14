@@ -12,23 +12,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-
 class UserDashboardViewModel : ViewModel() {
-
 
     private val _uiState =
         MutableStateFlow(
             UserDashboardUiState()
         )
 
-
     val uiState: StateFlow<UserDashboardUiState> =
         _uiState.asStateFlow()
 
-
     private val refreshMutex =
         Mutex()
-
 
     /*
      * Start dashboard auto refresh
@@ -50,7 +45,6 @@ class UserDashboardViewModel : ViewModel() {
         }
     }
 
-
     /*
      * Manual refresh
      */
@@ -67,7 +61,6 @@ class UserDashboardViewModel : ViewModel() {
         }
 
     }
-
 
     private suspend fun loadDashboard(
         userId: Int
@@ -113,6 +106,40 @@ class UserDashboardViewModel : ViewModel() {
                     else
                         null
 
+
+                /*
+                 * Notifications API
+                 */
+                val notificationResponse =
+                    RetrofitClient.api
+                        .getNotifications()
+
+                val notifications =
+                    if (notificationResponse.isSuccessful) {
+
+                        notificationResponse.body()
+                            ?: emptyList()
+
+                    } else {
+
+                        emptyList()
+                    }
+
+
+                android.util.Log.d(
+                    "NOTIFICATION_RESPONSE",
+                    "Success = ${notificationResponse.isSuccessful}"
+                )
+
+                android.util.Log.d(
+                    "NOTIFICATION_RESPONSE",
+                    "Notifications = $notifications"
+                )
+
+
+                /*
+                 * Check dashboard response
+                 */
                 if (response.isSuccessful) {
 
                     val data = response.body()
@@ -170,6 +197,8 @@ class UserDashboardViewModel : ViewModel() {
 
                                 recentAlert = data.recentAlert,
 
+                                notifications = notifications,
+
                                 loading = false,
 
                                 error = null
@@ -186,6 +215,12 @@ class UserDashboardViewModel : ViewModel() {
                 }
 
             } catch (e: Exception) {
+
+                android.util.Log.e(
+                    "DASHBOARD_ERROR",
+                    "Dashboard error",
+                    e
+                )
 
                 _uiState.value =
                     _uiState.value.copy(

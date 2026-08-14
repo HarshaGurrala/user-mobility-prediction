@@ -92,14 +92,11 @@ def login(
 ):
 
     result = authenticate_user(
-
-        db,
-
-        user.email,
-
-        user.password
-
-    )
+    db,
+    user.email,
+    user.password,
+    user.device_id
+)
 
     if result is None:
 
@@ -133,8 +130,9 @@ def swagger_login(
 
         form_data.username,
 
-        form_data.password
+        form_data.password,
 
+        "swagger-device"
     )
 
     if result is None:
@@ -291,17 +289,81 @@ def forgot_password(
     }
 
 
+# @router.put("/reset-password")
+# def reset_password_endpoint(
+#     request: ResetPasswordRequest,
+#     db: Session = Depends(get_db)
+# ):
+
+#     success, message = reset_password(
+#         db=db,
+#         token=request.token,
+#         new_password=request.new_password
+#     )
+
+#     if not success:
+#         raise HTTPException(
+#             status_code=400,
+#             detail=message
+#         )
+
+#     return {
+#         "message": message
+#     }
+
+@router.get("/reset-password-link")
+def reset_password_link(token: str):
+
+    return RedirectResponse(
+        url=f"safepathai://reset-password?token={token}"
+    )
+
+
+# @router.put("/reset-password")
+# def reset_password_endpoint(
+#     request: ResetPasswordRequest,
+#     db: Session = Depends(get_db)
+# ):
+#     print("RESET TOKEN RECEIVED:", request.token)
+#     print("NEW PASSWORD RECEIVED:", request.new_password)
+
+#     success, message = reset_password(
+#         db=db,
+#         token=request.token,
+#         new_password=request.new_password
+#     )
+
+#     print("RESET RESULT:", success, message)
+
+#     if not success:
+#         raise HTTPException(
+#             status_code=400,
+#             detail=message
+#         )
+
+#     return {
+#         "message": message
+#     }
+
+
 @router.put("/reset-password")
 def reset_password_endpoint(
     request: ResetPasswordRequest,
     db: Session = Depends(get_db)
 ):
+    print("========== RESET PASSWORD ==========")
+    print("TOKEN:", request.token)
+    print("NEW PASSWORD RECEIVED:", bool(request.new_password))
 
     success, message = reset_password(
         db=db,
         token=request.token,
         new_password=request.new_password
     )
+
+    print("SUCCESS:", success)
+    print("MESSAGE:", message)
+    print("====================================")
 
     if not success:
         raise HTTPException(
@@ -312,10 +374,3 @@ def reset_password_endpoint(
     return {
         "message": message
     }
-
-@router.get("/reset-password-link")
-def reset_password_link(token: str):
-
-    return RedirectResponse(
-        url=f"safepathai://reset-password?token={token}"
-    )

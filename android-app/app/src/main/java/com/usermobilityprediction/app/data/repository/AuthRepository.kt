@@ -37,6 +37,16 @@ class AuthRepository {
     }
 
 
+    suspend fun uploadProfilePicture(
+        profilePicture: okhttp3.MultipartBody.Part
+    ): Response<UserResponse> {
+
+        return RetrofitClient.api.uploadProfilePicture(
+            profilePicture
+        )
+    }
+
+
     suspend fun updateCurrentUser(
         request: UserUpdateRequest
     ): Response<UserResponse> {
@@ -46,6 +56,7 @@ class AuthRepository {
         )
     }
 
+
     suspend fun changePassword(
         request: ChangePasswordRequest
     ): Response<Map<String, String>> {
@@ -54,5 +65,4 @@ class AuthRepository {
             request
         )
     }
-
 }

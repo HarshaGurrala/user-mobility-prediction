@@ -110,12 +110,15 @@ ${
         </div>
       </div>
 
-      <div
-        className="
+ <div
+  className="
 mt-6
 space-y-3
+max-h-80
+overflow-y-auto
+pr-2
 "
-      >
+>
         {loading ? (
           <div
             className="
@@ -221,9 +224,33 @@ mt-2
                   >
                     <FiClock />
 
-                    {alert.created_at ||
-                      alert.time ||
-                      "Recently detected"}
+                    {alert.created_at
+  ? new Date(
+      alert.created_at + "Z"
+    ).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+  : alert.time
+  ? new Date(
+      alert.time + "Z"
+    ).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+  : "Recently detected"}
                   </div>
                 </div>
               </div>

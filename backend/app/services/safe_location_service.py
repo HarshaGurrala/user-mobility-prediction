@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.safe_location import SafeLocation
+from app.models.user_safety_state import UserSafetyState
 
 from app.schemas.safe_location import (
     SafeLocationCreate,
@@ -108,7 +109,6 @@ def update_safe_location(
     return safe_location
 
 
-
 def delete_safe_location(
     db: Session,
     location_id: int,
@@ -122,14 +122,21 @@ def delete_safe_location(
         .first()
     )
 
-
     if not safe_location:
         return False
 
+    # Clear any current safety-state reference
+    db.query(UserSafetyState).filter(
+        UserSafetyState.safe_location_id == location_id
+    ).update(
+        {
+            UserSafetyState.safe_location_id: None
+        },
+        synchronize_session=False
+    )
 
     db.delete(safe_location)
 
     db.commit()
-
 
     return True

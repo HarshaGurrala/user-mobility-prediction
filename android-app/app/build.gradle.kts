@@ -44,7 +44,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose:2.1.3")
     implementation("com.patrykandpatrick.vico:compose-m3:2.1.3")
     implementation("com.patrykandpatrick.vico:core:2.1.3")
-
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.android.libraries.places:places:4.1.0")
         // Retrofit
         implementation("com.squareup.retrofit2:retrofit:2.11.0")

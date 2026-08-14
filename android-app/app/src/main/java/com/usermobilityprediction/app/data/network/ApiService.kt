@@ -36,6 +36,14 @@ import com.usermobilityprediction.app.data.model.ConnectedGuardianResponse
 import com.usermobilityprediction.app.data.model.ResetPasswordRequest
 import com.usermobilityprediction.app.data.model.ForgotPasswordRequest
 import com.usermobilityprediction.app.data.model.ForgotPasswordResponse
+import com.usermobilityprediction.app.data.model.NotificationResponse
+import com.usermobilityprediction.app.data.model.SOSRequest
+
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
+
+
 
 interface ApiService {
 
@@ -69,6 +77,12 @@ interface ApiService {
     @GET("users/me")
     suspend fun getCurrentUser(): Response<UserResponse>
 
+    @Multipart
+    @POST("users/me/profile-picture")
+    suspend fun uploadProfilePicture(
+        @Part profile_picture: MultipartBody.Part
+    ): Response<UserResponse>
+
     @PUT("users/me")
     suspend fun updateCurrentUser(
         @Body request: UserUpdateRequest
@@ -93,7 +107,6 @@ interface ApiService {
 
     @GET("guardian/pending")
     suspend fun getPendingRequests():
-
             Response<List<PendingRequestResponse>>
 
 
@@ -104,10 +117,8 @@ interface ApiService {
 
     @PUT("guardian/accept/{request_id}")
     suspend fun acceptGuardianRequest(
-
         @Path("request_id")
         requestId: Int
-
     ): Response<Map<String, String>>
 
 
@@ -118,10 +129,8 @@ interface ApiService {
 
     @PUT("guardian/reject/{request_id}")
     suspend fun rejectGuardianRequest(
-
         @Path("request_id")
         requestId: Int
-
     ): Response<Map<String, String>>
 
 
@@ -197,5 +206,19 @@ interface ApiService {
     suspend fun forgotPassword(
         @Body request: ForgotPasswordRequest
     ): Response<ForgotPasswordResponse>
+
+
+    @POST("emergency/sos")
+    suspend fun triggerSOS(
+        @Body request: SOSRequest
+    ): Response<Map<String, Any>>
+
+    @GET("notifications/")
+    suspend fun getNotifications(): Response<List<NotificationResponse>>
+
+    @PUT("notifications/{notificationId}/read")
+    suspend fun markNotificationRead(
+        @Path("notificationId") notificationId: Int
+    ): Response<Map<String, Any>>
 
 }

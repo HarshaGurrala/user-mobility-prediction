@@ -38,6 +38,12 @@ data class UserDashboardUiState(
 
     val predictionConfidence: String = "--",
 
-    val predictionStatus: String = "Pending"
+    val predictionStatus: String = "Pending",
+
+    // ==========================================
+    // Notifications
+    // ==========================================
+
+    val notifications: List<NotificationResponse> = emptyList()
 
 )

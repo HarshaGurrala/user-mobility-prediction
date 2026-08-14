@@ -13,6 +13,10 @@ from app.services.location_service import (
     get_location_history
 )
 
+from app.services.location_alert_service import (
+    create_location_alert
+)
+
 from app.services.location_check_service import (
     check_safe_location
 )
@@ -30,76 +34,76 @@ router = APIRouter(
 # Save new location (USER only)
 # ==========================================================
 
-@router.post("/update/{user_id}")
-def update_location(
-    user_id: int,
-    location: LocationCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+# @router.post("/update/{user_id}")
+# def update_location(
+#     user_id: int,
+#     location: LocationCreate,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_user)
+# ):
 
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Cannot update another user's location"
-        )
-
-
-    # Save location history
-    result = add_location(
-        db,
-        user_id,
-        location
-    )
+#     if current_user.id != user_id:
+#         raise HTTPException(
+#             status_code=403,
+#             detail="Cannot update another user's location"
+#         )
 
 
-    # Update user online status
-    user = (
-        db.query(User)
-        .filter(
-            User.id == user_id
-        )
-        .first()
-    )
+#     # Save location history
+#     result = add_location(
+#         db,
+#         user_id,
+#         location
+#     )
 
 
-    if user:
-
-        user.last_seen = datetime.utcnow()
-
-        user.is_online = True
-
-        db.commit()
-
-
-    return result
-
-    # Update user online status
-
-    user = (
-        db.query(User)
-        .filter(
-            User.id == user_id
-        )
-        .first()
-    )
+#     # Update user online status
+#     user = (
+#         db.query(User)
+#         .filter(
+#             User.id == user_id
+#         )
+#         .first()
+#     )
 
 
-    if user:
+#     if user:
 
-        user.last_seen = datetime.utcnow()
+#         user.last_seen = datetime.utcnow()
 
-        user.is_online = True
+#         user.is_online = True
 
-        db.commit()
+#         db.commit()
 
 
-    return {
-        "message": "Location updated successfully",
-        "location": result,
-        "is_online": True,
-        "last_seen": user.last_seen if user else None
-    }
+#     return result
+
+#     # Update user online status
+
+#     user = (
+#         db.query(User)
+#         .filter(
+#             User.id == user_id
+#         )
+#         .first()
+#     )
+
+
+#     if user:
+
+#         user.last_seen = datetime.utcnow()
+
+#         user.is_online = True
+
+#         db.commit()
+
+
+#     return {
+#         "message": "Location updated successfully",
+#         "location": result,
+#         "is_online": True,
+#         "last_seen": user.last_seen if user else None
+#     }
 
 
 
@@ -161,7 +165,103 @@ def check_location(
         db,
         user_id,
         location.latitude,
-        location.longitude
+        location.longitude,
+        location.address
     )
 
     return result
+
+
+@router.post("/update/{user_id}")
+def update_location(
+    user_id: int,
+    location: LocationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    if current_user.id != user_id:
+
+        raise HTTPException(
+            status_code=403,
+            detail="Cannot update another user's location"
+        )
+
+    # --------------------------------------------------
+    # Save location history
+    # --------------------------------------------------
+
+    result = add_location(
+        db,
+        user_id,
+        location
+    )
+
+    # --------------------------------------------------
+    # Update user online status
+    # --------------------------------------------------
+
+    user = (
+        db.query(User)
+        .filter(
+            User.id == user_id
+        )
+        .first()
+    )
+
+    if user:
+
+        user.last_seen = datetime.utcnow()
+
+        user.is_online = True
+
+        db.commit()
+
+    # --------------------------------------------------
+    # Check Safe Zone
+    # --------------------------------------------------
+
+    location_status = check_safe_location(
+        db,
+        user_id,
+        location.latitude,
+        location.longitude
+    )
+
+    # --------------------------------------------------
+    # Unknown location
+    # --------------------------------------------------
+
+    alert_created = False
+
+    if location_status.get("status") == "UNKNOWN":
+
+        create_location_alert(
+            db=db,
+            user=user,
+            latitude=location.latitude,
+            longitude=location.longitude
+        )
+
+        alert_created = True
+
+    # --------------------------------------------------
+    # Response
+    # --------------------------------------------------
+
+    return {
+        "message": "Location updated successfully",
+
+        "location": result,
+
+        "is_online": True,
+
+        "last_seen":
+            user.last_seen if user else None,
+
+        "location_status":
+            location_status,
+
+        "alert_created":
+            alert_created
+    }

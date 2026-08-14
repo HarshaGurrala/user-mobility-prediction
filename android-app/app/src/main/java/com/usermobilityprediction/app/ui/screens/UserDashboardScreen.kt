@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
+
 import androidx.compose.material.icons.filled.Warning
 
 import androidx.compose.material3.Card
@@ -64,7 +64,20 @@ import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
+import com.usermobilityprediction.app.viewmodel.SOSViewModel
+import androidx.compose.material3.CircularProgressIndicator
 
+import androidx.compose.material.icons.filled.WarningAmber
+
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+
+
+
+import androidx.compose.ui.unit.sp
+import com.usermobilityprediction.app.viewmodel.NotificationViewModel
 
 
 @Composable
@@ -73,7 +86,7 @@ fun UserDashboardScreen(
     navController: NavController,
     userId: Int
 ) {
-
+    val sosViewModel: SOSViewModel = viewModel()
 
         val viewModel: UserDashboardViewModel = viewModel()
 
@@ -207,6 +220,10 @@ fun UserDashboardScreen(
             modifier = Modifier.height(16.dp)
         )
 
+
+
+
+
         // ==================================================
         // Recent Safety Activity
         // ==================================================
@@ -219,8 +236,34 @@ fun UserDashboardScreen(
             modifier = Modifier.height(16.dp)
         )
 
-        EmergencyContactsCard(
-            uiState = uiState
+
+
+//        EmergencyContactsCard(
+//            uiState = uiState
+//        )
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
+        // ==================================================
+        // Emergency / SOS
+        // ==================================================
+
+
+        EmergencyCard(
+            userId = userId,
+            currentLocation = liveLocation,
+            viewModel = sosViewModel
+        )
+
+        Spacer(
+            modifier = Modifier.height(24.dp)
+        )
+
+
+        SafetyNotificationCard(
+            notifications = uiState.notifications
         )
 
 
@@ -229,21 +272,17 @@ fun UserDashboardScreen(
         )
 
 
-        // ==================================================
-        // Emergency / SOS
-        // ==================================================
-
-
-        EmergencyCard()
-
-        Spacer(
-            modifier = Modifier.height(24.dp)
-        )
-
     }
 }
 @Composable
-private fun EmergencyCard() {
+private fun EmergencyCard(
+    userId: Int,
+    currentLocation: android.location.Location?,
+    viewModel: SOSViewModel
+) {
+
+    val loading by viewModel.loading.collectAsState()
+    val message by viewModel.message.collectAsState()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -252,7 +291,16 @@ private fun EmergencyCard() {
             containerColor = Color(0xFF7F1D1D)
         ),
         onClick = {
-            // SOS functionality will be connected later
+
+            if (currentLocation != null && !loading) {
+
+                viewModel.triggerSOS(
+                    latitude = currentLocation.latitude,
+                    longitude = currentLocation.longitude
+                )
+
+            }
+
         }
     ) {
 
@@ -273,11 +321,21 @@ private fun EmergencyCard() {
                 contentAlignment = Alignment.Center
             ) {
 
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = Color.White
-                )
+                if (loading) {
+
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
+                    )
+
+                } else {
+
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Emergency",
+                        tint = Color.White
+                    )
+                }
             }
 
             Spacer(
@@ -300,7 +358,14 @@ private fun EmergencyCard() {
                 )
 
                 Text(
-                    text = "Emergency functionality will be available here.",
+                    text = when {
+                        loading -> "Sending emergency alert..."
+                        message != null -> message!!
+                        currentLocation == null ->
+                            "Waiting for current location..."
+                        else ->
+                            "Send emergency alert to your contacts"
+                    },
                     color = Color.White.copy(alpha = 0.75f),
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -317,16 +382,43 @@ private fun EmergencyCard() {
 
 
 
-
 // ==========================================================
 // Header
 // ==========================================================
-
 @Composable
 private fun UserDashboardHeader(
     navController: NavController,
     uiState: UserDashboardUiState
 ) {
+
+    val notificationViewModel: NotificationViewModel = viewModel()
+
+    val notifications by notificationViewModel.notifications.collectAsState()
+
+    val unreadCount = notifications.count {
+        it.status.equals(
+            "unread",
+            ignoreCase = true
+        )
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+
+        val observer = LifecycleEventObserver { _, event ->
+
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationViewModel.loadNotifications()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -356,22 +448,55 @@ private fun UserDashboardHeader(
             )
         }
 
-        IconButton(
-            onClick = {
-                navController.navigate(Routes.SETTINGS)
-            }
+        // ==================================================
+        // NOTIFICATION BELL + UNREAD BADGE
+        // ==================================================
+
+        Box(
+            contentAlignment = Alignment.TopEnd
         ) {
 
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                tint = Color.White
-            )
+            IconButton(
+                onClick = {
+                    navController.navigate("notifications")
+                }
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Notifications",
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            if (unreadCount > 0) {
+
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .background(
+                            color = Color(0xFFEF4444),
+                            shape = RoundedCornerShape(50)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Text(
+                        text = if (unreadCount > 9) {
+                            "9+"
+                        } else {
+                            unreadCount.toString()
+                        },
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }
-
-
 // ==========================================================
 // Safety Overview
 // ==========================================================
@@ -879,119 +1004,222 @@ private fun DashboardSectionTitle(
     }
 }
 
+//@Composable
+//private fun EmergencyContactsCard(
+//    uiState: UserDashboardUiState
+//) {
+//
+//    Card(
+//        modifier = Modifier.fillMaxWidth(),
+//        shape = RoundedCornerShape(24.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = Color(0xFF111827)
+//        )
+//    ) {
+//
+//        Column(
+//            modifier = Modifier.padding(20.dp)
+//        ) {
+//
+//            DashboardSectionTitle(
+//                icon = Icons.Default.Phone,
+//                title = "Emergency Contacts"
+//            )
+//
+//
+//            Spacer(
+//                modifier = Modifier.height(16.dp)
+//            )
+//
+//
+//            if(uiState.emergencyContacts.isEmpty()) {
+//
+//                Text(
+//                    text = "No emergency contacts added.",
+//                    color = Color.Gray,
+//                    style = MaterialTheme.typography.bodyMedium
+//                )
+//
+//            } else {
+//
+//
+//                uiState.emergencyContacts.forEach { contact ->
+//
+//
+//                    Card(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(
+//                                vertical = 6.dp
+//                            ),
+//
+//                        shape = RoundedCornerShape(16.dp),
+//
+//                        colors = CardDefaults.cardColors(
+//                            containerColor = Color(0xFF1F2937)
+//                        )
+//                    ) {
+//
+//
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(14.dp),
+//
+//                            verticalAlignment = Alignment.CenterVertically
+//                        ) {
+//
+//
+//                            Box(
+//                                modifier = Modifier
+//                                    .size(42.dp)
+//                                    .background(
+//                                        Color(0xFF2563EB)
+//                                            .copy(alpha = 0.2f),
+//                                        RoundedCornerShape(14.dp)
+//                                    ),
+//
+//                                contentAlignment = Alignment.Center
+//                            ) {
+//
+//                                Icon(
+//                                    imageVector = Icons.Default.Person,
+//                                    contentDescription = null,
+//                                    tint = Color(0xFF60A5FA)
+//                                )
+//                            }
+//
+//
+//                            Spacer(
+//                                modifier = Modifier.width(12.dp)
+//                            )
+//
+////
+////                            Column {
+////
+////                                Text(
+////                                    text = contact.name ?: "Unknown Contact",
+////                                    color = Color.White,
+////                                    fontWeight = FontWeight.Bold
+////                                )
+////
+////                                Text(
+////                                    text = contact.relationshipType ?: "Contact",
+////                                    color = Color.Gray,
+////                                    style = MaterialTheme.typography.bodySmall
+////                                )
+////
+////                                Text(
+////                                    text = if (!contact.phoneNumber.isNullOrBlank()) {
+////                                        contact.phoneNumber
+////                                    } else {
+////                                        "No Phone Number"
+////                                    },
+////                                    color = Color.LightGray,
+////                                    style = MaterialTheme.typography.bodySmall
+////                                )
+////                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
 @Composable
-private fun EmergencyContactsCard(
-    uiState: UserDashboardUiState
+private fun SafetyNotificationCard(
+    notifications: List<com.usermobilityprediction.app.data.model.NotificationResponse>
 ) {
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF111827)
-        )
+    val unreadNotifications =
+        notifications.filter {
+            it.status.lowercase() == "unread"
+        }
+
+    if (unreadNotifications.isEmpty()) {
+        return
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
 
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
+        unreadNotifications.forEach { notification ->
 
-            DashboardSectionTitle(
-                icon = Icons.Default.Phone,
-                title = "Emergency Contacts"
-            )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
 
+                shape = RoundedCornerShape(20.dp),
 
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-
-            if(uiState.emergencyContacts.isEmpty()) {
-
-                Text(
-                    text = "No emergency contacts added.",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF78350F)
                 )
+            ) {
 
-            } else {
+                Column(
+                    modifier = Modifier.padding(18.dp)
+                ) {
 
-
-                uiState.emergencyContacts.forEach { contact ->
-
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                vertical = 6.dp
-                            ),
-
-                        shape = RoundedCornerShape(16.dp),
-
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF1F2937)
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
 
-
-                        Row(
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-
-                            verticalAlignment = Alignment.CenterVertically
+                                .size(44.dp)
+                                .background(
+                                    Color(0xFFF59E0B).copy(alpha = 0.2f),
+                                    RoundedCornerShape(14.dp)
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
 
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Safety Alert",
+                                tint = Color(0xFFFBBF24)
+                            )
+                        }
 
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .background(
-                                        Color(0xFF2563EB)
-                                            .copy(alpha = 0.2f),
-                                        RoundedCornerShape(14.dp)
-                                    ),
+                        Spacer(
+                            modifier = Modifier.width(12.dp)
+                        )
 
-                                contentAlignment = Alignment.Center
-                            ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
 
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Color(0xFF60A5FA)
-                                )
-                            }
-
-
-                            Spacer(
-                                modifier = Modifier.width(12.dp)
+                            Text(
+                                text = "Safety Alert",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium
                             )
 
+                            Spacer(
+                                modifier = Modifier.height(4.dp)
+                            )
 
-                            Column {
-
-                                Text(
-                                    text = contact.name ?: "Unknown Contact",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-
-                                Text(
-                                    text = contact.relationshipType ?: "Contact",
-                                    color = Color.Gray,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-
-                                Text(
-                                    text = contact.phoneNumber ?: "No Phone Number",
-                                    color = Color.LightGray,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
+                            Text(
+                                text = notification.title,
+                                color = Color.White.copy(alpha = 0.9f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     }
+
+                    Spacer(
+                        modifier = Modifier.height(12.dp)
+                    )
+
+                    Text(
+                        text = notification.message,
+                        color = Color.White.copy(alpha = 0.85f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }

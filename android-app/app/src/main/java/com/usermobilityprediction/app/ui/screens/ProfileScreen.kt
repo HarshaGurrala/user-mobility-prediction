@@ -1,6 +1,7 @@
 package com.usermobilityprediction.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,9 +49,13 @@ import com.usermobilityprediction.app.navigation.Routes
 import com.usermobilityprediction.app.viewmodel.ProfileViewModel
 import android.content.Intent
 import com.usermobilityprediction.app.data.location.LocationTrackingService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
-
-
+import com.usermobilityprediction.app.data.network.RetrofitClient
 
 @Composable
 fun ProfileScreen(
@@ -72,6 +77,21 @@ fun ProfileScreen(
     val loading by profileViewModel.loading.collectAsState()
 
     val error by profileViewModel.error.collectAsState()
+
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts.GetContent()
+        ) { uri ->
+
+            if (uri != null) {
+
+                profileViewModel.uploadProfilePicture(
+                    context = context,
+                    uri = uri
+                )
+            }
+        }
 
     LaunchedEffect(Unit) {
 
@@ -224,7 +244,6 @@ fun ProfileScreen(
                     horizontalAlignment =
                         Alignment.CenterHorizontally
                 ) {
-
                     Box(
                         modifier =
                             Modifier
@@ -235,25 +254,67 @@ fun ProfileScreen(
                                         .copy(
                                             alpha = 0.2f
                                         )
-                                ),
+                                )
+                                .clickable {
+
+                                    imagePickerLauncher.launch(
+                                        "image/*"
+                                    )
+                                },
 
                         contentAlignment =
                             Alignment.Center
                     ) {
 
-                        Icon(
-                            imageVector =
-                                Icons.Default.Person,
+                        if (
+                            !user?.profile_picture
+                                .isNullOrBlank()
+                        ) {
 
-                            contentDescription =
-                                "Profile",
+                            AsyncImage(
+                                model =
+                                    if (
+                                        user?.profile_picture
+                                            ?.startsWith("http") == true
+                                    ) {
 
-                            tint =
-                                Color(0xFF3B82F6),
+                                        user?.profile_picture
 
-                            modifier =
-                                Modifier.size(50.dp)
-                        )
+                                    } else {
+
+                                        RetrofitClient.BASE_URL +
+                                                user?.profile_picture
+                                                    ?.removePrefix("/")
+                                    },
+
+                                contentDescription =
+                                    "Profile Picture",
+
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+
+                                contentScale =
+                                    ContentScale.Crop
+                            )
+
+                        } else {
+
+                            Icon(
+                                imageVector =
+                                    Icons.Default.Person,
+
+                                contentDescription =
+                                    "Profile",
+
+                                tint =
+                                    Color(0xFF3B82F6),
+
+                                modifier =
+                                    Modifier.size(50.dp)
+                            )
+                        }
                     }
 
                     Spacer(
@@ -400,74 +461,9 @@ fun ProfileScreen(
                     Modifier.height(24.dp)
             )
 
-            // =========================
-            // SAFETY OVERVIEW
-            // =========================
 
-            Text(
-                text =
-                    "Safety Overview",
 
-                style =
-                    MaterialTheme.typography.titleMedium,
 
-                color =
-                    Color.White
-            )
-
-            Spacer(
-                modifier =
-                    Modifier.height(12.dp)
-            )
-
-            ProfileInfoCard(
-                icon =
-                    Icons.Default.Shield,
-
-                title =
-                    "Safety Status",
-
-                value =
-                    "Active"
-            )
-
-            ProfileInfoCard(
-                icon =
-                    Icons.Default.Security,
-
-                title =
-                    "Location Tracking",
-
-                value =
-                    "Enabled"
-            )
-
-            ProfileInfoCard(
-                icon =
-                    Icons.Default.Person,
-
-                title =
-                    "Guardians",
-
-                value =
-                    "0 Connected"
-            )
-
-            ProfileInfoCard(
-                icon =
-                    Icons.Default.Shield,
-
-                title =
-                    "Emergency Contacts",
-
-                value =
-                    "0 Added"
-            )
-
-            Spacer(
-                modifier =
-                    Modifier.height(24.dp)
-            )
 
             // =========================
             // SETTINGS BUTTON

@@ -6,5 +6,6 @@ data class UserResponse(
     val email: String,
     val phone_number: String,
     val role: String,
-    val safe_path_id: String
+    val safe_path_id: String,
+    val profile_picture: String? = null
 )

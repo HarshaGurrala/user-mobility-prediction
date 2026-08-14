@@ -8,7 +8,58 @@ from app.models.safe_location import SafeLocation
 
 from app.utils.location_utils import calculate_distance
 
+# from app.services.email_service import send_unknown_location_email
+# from app.models.emergency_contact import EmergencyContact
+# from app.models.user import User
 
+
+# def send_unknown_location_emails(
+#     db: Session,
+#     user_id: int,
+#     user_name: str,
+#     latitude: float,
+#     longitude: float,
+#     address: str
+# ):
+
+#     contacts = (
+#         db.query(EmergencyContact)
+#         .filter(
+#             EmergencyContact.user_id == user_id
+#         )
+#         .all()
+#     )
+
+#     event_time = datetime.now().strftime(
+#         "%Y-%m-%d %H:%M:%S"
+#     )
+
+#     for contact in contacts:
+
+#         if not contact.email:
+#             continue
+
+#         try:
+
+#             send_unknown_location_email(
+#                 recipient_email=contact.email,
+#                 user_name=user_name,
+#                 latitude=latitude,
+#                 longitude=longitude,
+#                 location_address=(
+#                     address
+#                     if address
+#                     else "Unknown Location"
+#                 ),
+#                 event_time=event_time
+#             )
+
+#         except Exception as e:
+
+#             print(
+#                 f"Unknown location email failed "
+#                 f"for {contact.email}: {e}"
+#             )
 
 def get_safety_status(
     db: Session,

@@ -33,10 +33,9 @@ import com.usermobilityprediction.app.ui.screens.ChangePasswordScreen
 import com.usermobilityprediction.app.ui.screens.GuardianScreen
 import com.usermobilityprediction.app.ui.screens.EmergencyContactsScreen
 import com.usermobilityprediction.app.ui.screens.LandingScreen
-import com.usermobilityprediction.app.ui.screens.EditEmergencyContactScreen
 import com.usermobilityprediction.app.ui.screens.SafeZonesScreen
-import com.usermobilityprediction.app.ui.screens.AddSafeZoneScreen
 
+import com.usermobilityprediction.app.ui.screens.NotificationsScreen
 
 @Composable
 fun AppShell(
@@ -79,7 +78,7 @@ fun AppShell(
                     icon = {
                         Icon(
                             Icons.Default.Home,
-                            contentDescription = null
+                            contentDescription = "Home"
                         )
                     },
 
@@ -94,17 +93,15 @@ fun AppShell(
                     onClick = {
 
                         navController.navigate(Routes.HOME) {
-
                             launchSingleTop = true
-
                         }
 
                     },
 
                     icon = {
                         Icon(
-                            Icons.Default.Home,
-                            contentDescription = null
+                            Icons.Default.SpaceDashboard,
+                            contentDescription = "Dashboard"
                         )
                     },
 
@@ -115,18 +112,22 @@ fun AppShell(
 
                 NavigationBarItem(
                     selected = currentRoute == Routes.ANALYTICS,
+
                     onClick = {
-                        navController.navigate(Routes.ANALYTICS, navOptions {
+
+                        navController.navigate(Routes.ANALYTICS) {
                             launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                        })
+                        }
+
                     },
+
                     icon = {
-                        Icon(Icons.Default.ShowChart, null)
+                        Icon(
+                            Icons.Default.ShowChart,
+                            contentDescription = "Analytics"
+                        )
                     },
+
                     label = {
                         Text("Analytics")
                     }
@@ -134,18 +135,22 @@ fun AppShell(
 
                 NavigationBarItem(
                     selected = currentRoute == Routes.PROFILE,
+
                     onClick = {
-                        navController.navigate(Routes.PROFILE, navOptions {
+
+                        navController.navigate(Routes.PROFILE) {
                             launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                        })
+                        }
+
                     },
+
                     icon = {
-                        Icon(Icons.Default.Person, null)
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Profile"
+                        )
                     },
+
                     label = {
                         Text("Profile")
                     }
@@ -184,6 +189,14 @@ fun AppShell(
                 UserDashboardScreen(
                     navController = navController,
                     userId = userId
+                )
+
+            }
+
+            composable("notifications") {
+
+                NotificationsScreen(
+                    navController = navController
                 )
 
             }
@@ -240,75 +253,13 @@ fun AppShell(
             }
 
 
-
-
-
-
-
-
-            composable(Routes.EMERGENCY_CONTACTS) {
+            composable(
+                route = Routes.EMERGENCY_CONTACTS
+            ) {
                 EmergencyContactsScreen(
                     navController = navController,
-                    userId = userId ?: 0
+                    userId = userId
                 )
-            }
-
-
-
-            composable(
-                route = Routes.EDIT_EMERGENCY_CONTACT
-            ) { backStackEntry ->
-
-
-                val contactId =
-                    backStackEntry.arguments
-                        ?.getString("contact_id")
-                        ?.toIntOrNull()
-                        ?: 0
-
-
-                val name =
-                    backStackEntry.arguments
-                        ?.getString("name")
-                        ?: ""
-
-
-                val relationship =
-                    backStackEntry.arguments
-                        ?.getString("relationship")
-                        ?: ""
-
-
-                val phone =
-                    backStackEntry.arguments
-                        ?.getString("phone")
-                        ?: ""
-
-
-                val email =
-                    backStackEntry.arguments
-                        ?.getString("email")
-                        ?: ""
-
-
-                EditEmergencyContactScreen(
-
-                    navController = navController,
-
-                    contactId = contactId,
-
-                    userId = userId ?: 0,
-
-                    name = name,
-
-                    relationship = relationship,
-
-                    phone = phone,
-
-                    email = email
-
-                )
-
             }
 
         }

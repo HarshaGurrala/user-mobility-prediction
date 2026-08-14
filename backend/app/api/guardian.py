@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.dependencies.auth import get_current_user
-
+from datetime import datetime, timedelta
+from app.models.notification import Notification
 from app.models.user import User
 from app.models.user_guardian_relationship import UserGuardianRelationship
-
+from app.models.alert import Alert
 from app.schemas.guardian import GuardianRequest
 from app.services.guardian_service import (
     send_request,
@@ -16,9 +17,9 @@ from app.services.guardian_service import (
     get_connected_users,
     get_live_map_users,
     get_guardian_user_details,
-    get_guardian_movement_analytics
+    get_guardian_movement_analytics,
+    get_guardian_user_movement_analytics,
 )
-
 
 
 
@@ -391,24 +392,32 @@ def get_linked_users(
         .all()
     )
 
-
     result = []
-
 
     for relationship, user in users:
 
         result.append({
 
             "relationship_id": relationship.id,
-            "user_id": user.id,
-            "user_name": user.full_name,
+
+            "id": user.id,
+
+            "full_name": user.full_name,
+
             "email": user.email,
-            "safe_path_id": user.safe_path_id
+
+            "safe_path_id": user.safe_path_id,
+
+            "is_online": user.is_online,
+
+            "profile_picture": user.profile_picture
 
         })
 
-
     return result
+
+
+
 
 
 @router.get("/stats")
@@ -421,7 +430,6 @@ def get_guardian_stats(
     print("USER ID:", current_user.id)
     print("ROLE:", current_user.role)
 
-
     rows = (
         db.query(UserGuardianRelationship)
         .filter(
@@ -430,9 +438,7 @@ def get_guardian_stats(
         .all()
     )
 
-
     print("RELATION COUNT:", len(rows))
-
 
     for row in rows:
         print(
@@ -441,7 +447,6 @@ def get_guardian_stats(
             row.user_id,
             row.status
         )
-
 
     linked_users = (
         db.query(UserGuardianRelationship)
@@ -452,16 +457,41 @@ def get_guardian_stats(
         .count()
     )
 
-
     print("FINAL LINKED USERS:", linked_users)
 
+    # Get IDs of guardian's accepted users
+    user_ids = [
+        row.user_id
+        for row in rows
+        if row.status == "ACCEPTED"
+    ]
+
+    # Count real alerts generated for those users
+    total_alerts = 0
+
+    if user_ids:
+        total_alerts = (
+            db.query(Alert)
+            .filter(
+                Alert.user_id.in_(user_ids)
+            )
+            .count()
+        )
+
+    print("FINAL TOTAL ALERTS:", total_alerts)
 
     return {
         "linked_users": linked_users,
         "safety_status": "SAFE",
-        "total_alerts": 0,
+        "total_alerts": total_alerts,
         "guardian_status": "ACTIVE"
     }
+
+
+
+
+
+
 
 @router.get("/live-map")
 def guardian_live_map(
@@ -535,3 +565,160 @@ def guardian_movement_analytics(
         guardian_id=current_user.id,
         filter=filter
     )
+
+
+@router.get("/user/{user_id}/movement-analytics")
+def guardian_user_movement_analytics(
+    user_id: int,
+    filter: str = "weekly",
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    if current_user.role != "GUARDIAN":
+        raise HTTPException(
+            status_code=403,
+            detail="Only guardian can view movement analytics."
+        )
+
+    return get_guardian_user_movement_analytics(
+        db=db,
+        guardian_id=current_user.id,
+        user_id=user_id,
+        filter=filter
+    )
+
+
+# ==========================================================
+# GUARDIAN AI FAMILY SAFETY REPORT
+# ==========================================================
+
+@router.get("/{guardian_id}/ai-report")
+def guardian_ai_report(
+    guardian_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # Get accepted users connected to this guardian
+    relationships = (
+        db.query(UserGuardianRelationship)
+        .filter(
+            UserGuardianRelationship.guardian_id == guardian_id,
+            UserGuardianRelationship.status == "ACCEPTED"
+        )
+        .all()
+    )
+
+    total_users = len(relationships)
+
+    if total_users == 0:
+
+        return {
+            "score": 100,
+            "safeUsers": 0,
+            "warnings": 0,
+            "summary": "No connected users available for AI safety analysis."
+        }
+
+    cutoff_time = datetime.now() - timedelta(hours=48)
+
+    warnings = 0
+    safe_users = 0
+
+    # ==========================================
+    # CHECK EACH CONNECTED USER
+    # ==========================================
+
+    for relationship in relationships:
+
+        user_id = relationship.user_id
+
+        recent_notifications = (
+            db.query(Notification)
+            .filter(
+                Notification.user_id == user_id,
+                Notification.created_at >= cutoff_time
+            )
+            .all()
+        )
+
+        user_has_warning = False
+
+        for notification in recent_notifications:
+
+            notification_type = (
+                notification.notification_type
+                or ""
+            ).upper()
+
+            # Safety-related warnings
+            if notification_type in [
+                "SOS",
+                "UNKNOWN_LOCATION",
+                "ALERT",
+                "DANGER"
+            ]:
+
+                warnings += 1
+
+                user_has_warning = True
+
+        if not user_has_warning:
+
+            safe_users += 1
+
+    # ==========================================
+    # CALCULATE SAFETY SCORE
+    # ==========================================
+
+    # Each warning reduces the score.
+    score = 100 - (warnings * 10)
+
+    # Keep score between 0 and 100.
+    score = max(
+        0,
+        min(
+            100,
+            score
+        )
+    )
+
+    # ==========================================
+    # AI SUMMARY
+    # ==========================================
+
+    if warnings == 0:
+
+        summary = (
+            "All connected users are currently safe. "
+            "No recent safety warnings were detected."
+        )
+
+    elif score >= 80:
+
+        summary = (
+            "The family is mostly safe. "
+            "A small number of safety warnings were detected "
+            "during the last 48 hours."
+        )
+
+    elif score >= 50:
+
+        summary = (
+            "Some safety concerns were detected. "
+            "Review the recent alerts and monitor the affected users."
+        )
+
+    else:
+
+        summary = (
+            "Multiple safety concerns were detected. "
+            "Immediate attention to recent alerts is recommended."
+        )
+
+    return {
+        "score": score,
+        "safeUsers": safe_users,
+        "warnings": warnings,
+        "summary": summary
+    }

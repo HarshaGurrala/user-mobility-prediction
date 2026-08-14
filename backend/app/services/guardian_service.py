@@ -6,8 +6,8 @@ from app.models.user import User
 from app.models.user_guardian_relationship import UserGuardianRelationship
 
 from app.services.online_status_service import check_user_online_status
-
 from datetime import datetime, timedelta
+
 
 from collections import defaultdict
 
@@ -281,50 +281,51 @@ def get_guardian_user_details(
 
     return {
 
-        "user_id": user.id,
+    "user_id": user.id,
 
-        "user_name": user.full_name,
+    "user_name": user.full_name,
 
-        "safe_path_id": user.safe_path_id,
+    "full_name": user.full_name,
 
+    "profile_picture": user.profile_picture,
 
-        "is_online": user.is_online,
+    "safe_path_id": user.safe_path_id,
 
-        "last_seen": user.last_seen,
+    "is_online": user.is_online,
 
+    "last_seen": user.last_seen,
 
-        "location": {
+    "location": {
 
-            "latitude":
-                location.latitude if location else None,
+        "latitude":
+            location.latitude if location else None,
 
-            "longitude":
-                location.longitude if location else None,
+        "longitude":
+            location.longitude if location else None,
 
-            "place":
-                location.address if location else "Unknown"
+        "place":
+            location.address if location else "Unknown"
 
-        },
+    },
 
+    "history": [
 
-        "history":[
+        {
+            "latitude": item.latitude,
 
-            {
-                "latitude":item.latitude,
+            "longitude": item.longitude,
 
-                "longitude":item.longitude,
+            "place": item.address,
 
-                "place":item.address,
+            "timestamp": item.timestamp
 
-                "timestamp":item.timestamp
+        }
 
-            }
+        for item in history
 
-            for item in history
+    ]
 
-        ]
-
-    }
+}
 
 
 
@@ -784,6 +785,8 @@ def calculate_distance_km(
 
 
 
+## `guardian_service.py` — `get_live_map_users()`
+
 
 def get_live_map_users(
     db: Session,
@@ -801,35 +804,522 @@ def get_live_map_users(
 
     result = []
 
-    for relation in relationships:
-        
-        print("PROCESSING USER:", relation.user_id)
+    for relationship in relationships:
 
         user = (
             db.query(User)
-            .filter(User.id == relation.user_id)
+            .filter(
+                User.id == relationship.user_id
+            )
             .first()
         )
 
         if not user:
             continue
 
+
+        # ==========================================
+        # GET LATEST LOCATION
+        # ==========================================
+
         latest_location = (
             db.query(Location)
-            .filter(Location.user_id == user.id)
-            .order_by(Location.timestamp.desc())
+            .filter(
+                Location.user_id == user.id
+            )
+            .order_by(
+                Location.timestamp.desc()
+            )
             .first()
         )
 
-        if not latest_location:
-            continue
+
+        # ==========================================
+        # ADD USER TO RESULT
+        # ==========================================
 
         result.append({
+
             "user_id": user.id,
-            "user_name": user.full_name or user.email,
-            "latitude": latest_location.latitude,
-            "longitude": latest_location.longitude,
-            "timestamp": latest_location.timestamp
+
+            "user_name":
+                user.full_name or user.email,
+
+            "safe_path_id":
+                user.safe_path_id,
+
+            "latitude":
+                latest_location.latitude
+                if latest_location
+                else None,
+
+            "longitude":
+                latest_location.longitude
+                if latest_location
+                else None,
+
+            "timestamp":
+                latest_location.timestamp
+                if latest_location
+                else None,
+
+            "is_online":
+                bool(user.is_online),
+
+            "last_seen":
+                user.last_seen
+
         })
 
+
     return result
+
+
+
+
+
+
+
+
+
+
+
+
+def get_guardian_user_movement_analytics(
+    db: Session,
+    guardian_id: int,
+    user_id: int,
+    filter: str = "weekly"
+):
+    # ==========================================================
+    # VERIFY USER IS CONNECTED TO THIS GUARDIAN
+    # ==========================================================
+
+    relationship = (
+        db.query(UserGuardianRelationship)
+        .filter(
+            UserGuardianRelationship.guardian_id == guardian_id,
+            UserGuardianRelationship.user_id == user_id,
+            UserGuardianRelationship.status == "ACCEPTED"
+        )
+        .first()
+    )
+
+    if not relationship:
+        return {
+            "user_id": user_id,
+            "user_name": None,
+            "daily": [],
+            "weekly": [],
+            "monthly": [],
+            "yearly": []
+        }
+
+    # ==========================================================
+    # GET USER
+    # ==========================================================
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        return {
+            "user_id": user_id,
+            "user_name": None,
+            "daily": [],
+            "weekly": [],
+            "monthly": [],
+            "yearly": []
+        }
+
+    user_name = user.full_name or user.email
+
+    # ==========================================================
+    # CURRENT TIME
+    # ==========================================================
+
+    now = datetime.now()
+
+    # ==========================================================
+    # DAILY
+    #
+    # Keep 12 two-hour slots for TODAY.
+    # The previous-day issue is handled by the weekly/monthly
+    # history, while the Daily chart remains unchanged.
+    # ==========================================================
+
+    today_start = now.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
+    )
+
+    tomorrow_start = today_start + timedelta(days=1)
+
+    # ==========================================================
+    # WEEKLY
+    #
+    # Current Monday -> Sunday only.
+    # ==========================================================
+
+    week_start = now - timedelta(days=now.weekday())
+
+    week_start = week_start.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
+    )
+
+    week_end = week_start + timedelta(days=7)
+
+    # ==========================================================
+    # MONTHLY
+    # ==========================================================
+
+    month_start = now.replace(
+        day=1,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
+    )
+
+    if now.month == 12:
+        next_month_start = datetime(
+            now.year + 1,
+            1,
+            1
+        )
+    else:
+        next_month_start = datetime(
+            now.year,
+            now.month + 1,
+            1
+        )
+
+    # ==========================================================
+    # YEARLY
+    # ==========================================================
+
+    year_start = datetime(
+        now.year,
+        1,
+        1
+    )
+
+    year_end = datetime(
+        now.year + 1,
+        1,
+        1
+    )
+
+    # ==========================================================
+    # LABELS
+    # ==========================================================
+
+    daily_labels = [
+        "00", "02", "04", "06",
+        "08", "10", "12", "14",
+        "16", "18", "20", "22"
+    ]
+
+    weekly_labels = [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+    ]
+
+    monthly_labels = [
+        str(i)
+        for i in range(
+            1,
+            calendar.monthrange(
+                now.year,
+                now.month
+            )[1] + 1
+        )
+    ]
+
+    yearly_labels = [
+        "Jan", "Feb", "Mar", "Apr",
+        "May", "Jun", "Jul", "Aug",
+        "Sep", "Oct", "Nov", "Dec"
+    ]
+
+    # ==========================================================
+    # LOAD LOCATIONS
+    #
+    # Load enough history for all four analytics at once.
+    # ==========================================================
+
+    locations = (
+        db.query(Location)
+        .filter(
+            Location.user_id == user_id,
+            Location.timestamp >= year_start,
+            Location.timestamp < year_end
+        )
+        .order_by(
+            Location.timestamp.asc()
+        )
+        .all()
+    )
+
+    # ==========================================================
+    # CHART STORAGE
+    # ==========================================================
+
+    daily_chart = {}
+    weekly_chart = {}
+    monthly_chart = {}
+    yearly_chart = {}
+
+    # ==========================================================
+    # CALCULATE MOVEMENT
+    # ==========================================================
+
+    for i in range(1, len(locations)):
+
+        previous = locations[i - 1]
+        current = locations[i]
+
+        ts = current.timestamp
+
+        # ------------------------------------------------------
+        # DISTANCE BETWEEN CONSECUTIVE LOCATIONS
+        # ------------------------------------------------------
+
+        distance = calculate_distance_km(
+            previous.latitude,
+            previous.longitude,
+            current.latitude,
+            current.longitude
+        )
+
+        distance = round(distance, 2)
+
+        # ======================================================
+        # DAILY
+        #
+        # Only today's movement.
+        # ======================================================
+
+        if today_start <= ts < tomorrow_start:
+
+            hour = (ts.hour // 2) * 2
+
+            daily_key = f"{hour:02d}"
+
+            if daily_key not in daily_chart:
+                daily_chart[daily_key] = {
+                    "time": daily_key
+                }
+
+            daily_chart[daily_key][user_name] = round(
+                daily_chart[daily_key].get(
+                    user_name,
+                    0
+                ) + distance,
+                2
+            )
+
+        # ======================================================
+        # WEEKLY
+        #
+        # Monday -> Sunday.
+        # ======================================================
+
+        if week_start <= ts < week_end:
+
+            week_key = ts.strftime("%a")
+
+            if week_key not in weekly_chart:
+                weekly_chart[week_key] = {
+                    "time": week_key
+                }
+
+            weekly_chart[week_key][user_name] = round(
+                weekly_chart[week_key].get(
+                    user_name,
+                    0
+                ) + distance,
+                2
+            )
+
+        # ======================================================
+        # MONTHLY
+        #
+        # Day 1 -> last day of current month.
+        # ======================================================
+
+        if month_start <= ts < next_month_start:
+
+            month_key = str(ts.day)
+
+            if month_key not in monthly_chart:
+                monthly_chart[month_key] = {
+                    "time": month_key
+                }
+
+            monthly_chart[month_key][user_name] = round(
+                monthly_chart[month_key].get(
+                    user_name,
+                    0
+                ) + distance,
+                2
+            )
+
+        # ======================================================
+        # YEARLY
+        #
+        # January -> December.
+        # ======================================================
+
+        if year_start <= ts < year_end:
+
+            year_key = ts.strftime("%b")
+
+            if year_key not in yearly_chart:
+                yearly_chart[year_key] = {
+                    "time": year_key
+                }
+
+            yearly_chart[year_key][user_name] = round(
+                yearly_chart[year_key].get(
+                    user_name,
+                    0
+                ) + distance,
+                2
+            )
+
+    # ==========================================================
+    # BUILD COMPLETE DAILY
+    # ==========================================================
+
+    daily = []
+
+    for label in daily_labels:
+
+        daily.append(
+            daily_chart.get(
+                label,
+                {
+                    "time": label,
+                    user_name: 0
+                }
+            )
+        )
+
+    # ==========================================================
+    # BUILD COMPLETE WEEKLY
+    # ==========================================================
+
+    weekly = []
+
+    for label in weekly_labels:
+
+        weekly.append(
+            weekly_chart.get(
+                label,
+                {
+                    "time": label,
+                    user_name: 0
+                }
+            )
+        )
+
+    # ==========================================================
+    # BUILD COMPLETE MONTHLY
+    # ==========================================================
+
+    monthly = []
+
+    for label in monthly_labels:
+
+        monthly.append(
+            monthly_chart.get(
+                label,
+                {
+                    "time": label,
+                    user_name: 0
+                }
+            )
+        )
+
+    # ==========================================================
+    # BUILD COMPLETE YEARLY
+    # ==========================================================
+
+    yearly = []
+
+    for label in yearly_labels:
+
+        yearly.append(
+            yearly_chart.get(
+                label,
+                {
+                    "time": label,
+                    user_name: 0
+                }
+            )
+        )
+
+    # ==========================================================
+    # DEBUG
+    # ==========================================================
+
+    print(
+        "=========================================="
+    )
+
+    print(
+        "SINGLE USER ANALYTICS:",
+        user_id,
+        user_name
+    )
+
+    print(
+        "DAILY:",
+        daily
+    )
+
+    print(
+        "WEEKLY:",
+        weekly
+    )
+
+    print(
+        "MONTHLY:",
+        monthly
+    )
+
+    print(
+        "YEARLY:",
+        yearly
+    )
+
+    print(
+        "=========================================="
+    )
+
+    # ==========================================================
+    # RETURN
+    # ==========================================================
+
+    return {
+        "user_id": user.id,
+        "user_name": user_name,
+        "daily": daily,
+        "weekly": weekly,
+        "monthly": monthly,
+        "yearly": yearly
+    }

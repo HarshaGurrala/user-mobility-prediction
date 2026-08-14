@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -30,9 +30,9 @@ def create_password_reset(
 
     # Token valid for 15 minutes
     expires_at = (
-        datetime.utcnow()
-        + timedelta(minutes=15)
-    )
+    datetime.now(timezone.utc).replace(tzinfo=None)
+    + timedelta(minutes=15)
+)
 
     # Remove previous reset tokens
     db.query(PasswordResetToken).filter(
@@ -85,7 +85,7 @@ def reset_password(
         return False, "Invalid reset token"
 
     # Check expiration
-    if reset_token.expires_at < datetime.utcnow():
+    if reset_token.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
         db.delete(reset_token)
         db.commit()
 

@@ -7,10 +7,14 @@ import {
   FiTrendingUp,
 } from "react-icons/fi";
 
+
+
+
 import { useEffect, useState } from "react";
 import { getGuardianAIReport } from "../../services/guardianApi";
 export default function GuardianAIReport() {
 
+  
 
 const [report,setReport] = useState({
 
@@ -25,45 +29,46 @@ summary:"Loading AI report..."
 });
 
 
-useEffect(()=>{
+useEffect(() => {
 
+    const loadReport = async () => {
 
-const loadReport = async()=>{
+        try {
 
+            const guardianId =
+                localStorage.getItem("userId");
 
-try{
+            console.log(
+                "AI Report Guardian ID:",
+                guardianId
+            );
 
+            const data =
+                await getGuardianAIReport(
+                    guardianId
+                );
 
-const guardianId = localStorage.getItem("userId");
+            console.log(
+                "AI Report Backend Data:",
+                data
+            );
 
+            setReport(data);
 
-const data = await getGuardianAIReport(
-    guardianId
-);
+        } catch (error) {
 
+            console.log(
+                "AI Report API Error:",
+                error
+            );
 
-setReport(data);
+        }
 
+    };
 
-}
+    loadReport();
 
-catch(error){
-
-console.log(
-"AI Report API Error:",
-error
-);
-
-}
-
-
-};
-
-
-loadReport();
-
-
-},[]);
+}, []);
 
 
 return (

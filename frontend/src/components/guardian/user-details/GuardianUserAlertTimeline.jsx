@@ -275,7 +275,7 @@ text-gray-400
 
 <FiClock/>
 
-{alert.time}
+{formatAlertTime(alert.time)}{alert.time}
 
 </div>
 

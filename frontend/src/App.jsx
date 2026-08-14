@@ -10,8 +10,7 @@ import Register from "./pages/Register";
 import Landing from "./pages/Landing/Landing";
 
 import GuardianHome from "./pages/guardian/GuardianHome";
-import Dashboard from "./pages/Dashboard";
-
+import Dashboard from "./pages/Dashboard";import GuestRoute from "./routes/GuestRoute";
 import GuardianFamilyMap from "./pages/guardian/GuardianFamilyMap";
 
 
@@ -34,10 +33,13 @@ element={<Landing />}
 
 
 <Route
-path="/login"
-element={<Login />}
+    path="/login"
+    element={
+        <GuestRoute>
+            <Login />
+        </GuestRoute>
+    }
 />
-
 
 <Route
 path="/register"

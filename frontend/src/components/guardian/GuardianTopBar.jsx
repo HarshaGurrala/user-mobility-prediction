@@ -1,515 +1,866 @@
 import { motion } from "framer-motion";
 
 import {
-  FiShield,
-  FiBell,
-  FiUser,
+    FiShield,
+    FiUser,
+    FiX,
+    FiCamera,
+    FiLogOut,
 } from "react-icons/fi";
 
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useRef,
+    useState
+} from "react";
+
+import { useNavigate } from "react-router-dom";
 
 import { getUserProfile } from "../../services/locationService";
+
+import axios from "axios";
+
+import { useAuth } from "../../context/AuthContext";
 
 
 export default function GuardianTopBar() {
 
+    const navigate = useNavigate();
 
-const [guardian,setGuardian] = useState(null);
+    const { logout } = useAuth();
 
+    const [guardian, setGuardian] = useState(null);
 
+    const [showProfile, setShowProfile] = useState(false);
 
-useEffect(()=>{
+    const [uploading, setUploading] = useState(false);
 
-
-const loadGuardian = async()=>{
-
-
-try{
-
-
-const guardianId =
-localStorage.getItem("userId");
+    const fileInputRef = useRef(null);
 
 
+    // ==================================================
+    // LOAD GUARDIAN PROFILE
+    // ==================================================
 
-if(!guardianId){
+    useEffect(() => {
 
-return;
+        const loadGuardian = async () => {
 
-}
+            try {
 
+                const data = await getUserProfile();
 
+                console.log(
+                    "Guardian Profile:",
+                    data
+                );
 
-const data =
-await getUserProfile(
-    guardianId
-);
+                setGuardian(data);
 
+            }
+            catch (error) {
 
+                console.log(
+                    "Guardian profile error:",
+                    error
+                );
 
-setGuardian(data);
+            }
 
-
-
-}
-
-catch(error){
-
-
-console.log(
-"Guardian profile error:",
-error
-);
+        };
 
 
-}
+        loadGuardian();
 
+
+        const interval = setInterval(() => {
+
+            loadGuardian();
+
+        }, 10000);
+
+
+        return () =>
+            clearInterval(interval);
+
+    }, []);
+
+
+    // ==================================================
+    // ONLINE STATUS
+    // ==================================================
+
+    const isOnline =
+        guardian?.is_online === true ||
+        guardian?.is_online === 1 ||
+        guardian?.is_online === "1" ||
+        guardian?.is_online === "true" ||
+        guardian?.is_online === "online";
+
+
+    // ==================================================
+    // PROFILE IMAGE
+    // ==================================================
+
+    const profileImage =
+        guardian?.profile_picture
+            ? guardian.profile_picture.startsWith("http")
+                ? guardian.profile_picture
+                : `http://127.0.0.1:8000${guardian.profile_picture}`
+            : null;
+
+
+    // ==================================================
+    // LOGOUT
+    // ==================================================
+
+   const handleLogout = () => {
+
+    console.log("Guardian logout");
+
+    setShowProfile(false);
+
+    logout();
+
+    navigate("/", {
+        replace: true
+    });
 
 };
 
 
+    // ==================================================
+    // UPLOAD PROFILE PICTURE
+    // ==================================================
 
+    const handleProfilePictureUpload = async (event) => {
 
-// first load
+        const file = event.target.files?.[0];
 
-loadGuardian();
+        if (!file) {
+            return;
+        }
 
 
+        // Only image files
+        if (!file.type.startsWith("image/")) {
 
+            alert(
+                "Please select an image file."
+            );
 
-// refresh every 10 seconds
+            return;
+        }
 
-const interval =
-setInterval(()=>{
 
-loadGuardian();
+        try {
 
-},10000);
+            setUploading(true);
 
 
+            const formData = new FormData();
 
-return ()=>clearInterval(interval);
+            formData.append(
+                "profile_picture",
+                file
+            );
 
 
+            const token =
+                localStorage.getItem("token");
 
-},[]);
 
+            const response =
+                await axios.post(
+                    "http://127.0.0.1:8000/users/me/profile-picture",
+                    formData,
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
 
 
+            console.log(
+                "Profile picture uploaded:",
+                response.data
+            );
 
 
-return (
+            // Immediately update profile
+            setGuardian(
+                response.data
+            );
 
-<motion.div
 
-initial={{
-opacity:0,
-y:-30
-}}
+            // Clear file input
+            if (fileInputRef.current) {
 
-animate={{
-opacity:1,
-y:0
-}}
+                fileInputRef.current.value = "";
 
-transition={{
-duration:0.6
-}}
+            }
 
-className="
-mx-6
-mt-6
-rounded-3xl
-border
-border-white/10
-bg-white/5
-backdrop-blur-2xl
-px-6
-py-4
-shadow-[0_0_40px_rgba(59,130,246,.15)]
-"
+        }
+        catch (error) {
 
->
+            console.error(
+                "Profile picture upload failed:",
+                error
+            );
 
 
-<div className="
-flex
-items-center
-justify-between
-">
+            alert(
+                error.response?.data?.detail ||
+                "Failed to upload profile picture."
+            );
 
+        }
+        finally {
 
-<div className="
-flex
-items-center
-gap-4
-">
+            setUploading(false);
 
+        }
 
-<div className="
-relative
-h-12
-w-12
-rounded-2xl
-bg-gradient-to-br
-from-blue-500/40
-to-violet-500/40
-flex
-items-center
-justify-center
-">
+    };
 
 
-<FiShield
+    return (
 
-className="
-text-blue-300
-text-2xl
-"
+        <>
 
-/>
+            {/* ==================================================
+                TOP BAR
+            ================================================== */}
+
+            <motion.div
+
+                initial={{
+                    opacity: 0,
+                    y: -30
+                }}
+
+                animate={{
+                    opacity: 1,
+                    y: 0
+                }}
+
+                transition={{
+                    duration: 0.6
+                }}
 
+                className="
+                mx-6
+                mt-6
+                rounded-3xl
+                border
+                border-white/10
+                bg-white/5
+                backdrop-blur-2xl
+                px-6
+                py-4
+                shadow-[0_0_40px_rgba(59,130,246,.15)]
+                "
+
+            >
+
+                <div className="
+                flex
+                items-center
+                justify-between
+                ">
+
+
+                    {/* ==================================================
+                        LEFT - GUARDIAN AI
+                    ================================================== */}
+
+                    <div className="
+                    flex
+                    items-center
+                    gap-4
+                    ">
+
+                        <div className="
+                        relative
+                        h-12
+                        w-12
+                        rounded-2xl
+                        bg-gradient-to-br
+                        from-blue-500/40
+                        to-violet-500/40
+                        flex
+                        items-center
+                        justify-center
+                        ">
+
+                            <FiShield
+                                className="
+                                text-blue-300
+                                text-2xl
+                                "
+                            />
 
 
-<motion.div
+                            <motion.div
 
-animate={{
-scale:[1,1.3,1]
-}}
+                                animate={{
+                                    scale: [1, 1.3, 1]
+                                }}
 
-transition={{
-repeat:Infinity,
-duration:2
-}}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 2
+                                }}
 
-className="
-absolute
-inset-0
-rounded-2xl
-bg-blue-400/20
-"
+                                className="
+                                absolute
+                                inset-0
+                                rounded-2xl
+                                bg-blue-400/20
+                                "
+                            />
 
-/>
+                        </div>
 
 
-</div>
+                        <div>
 
+                            <h1 className="
+                            text-white
+                            font-semibold
+                            text-xl
+                            ">
 
+                                Guardian AI
 
+                            </h1>
 
-<div>
 
+                            <p className="
+                            text-xs
+                            text-gray-400
+                            ">
 
-<h1 className="
-text-white
-font-semibold
-text-xl
-">
+                                Family Safety Monitoring
 
-Guardian AI
+                            </p>
 
-</h1>
+                        </div>
 
+                    </div>
 
 
-<p className="
-text-xs
-text-gray-400
-">
+                    {/* ==================================================
+                        SYSTEM STATUS
+                    ================================================== */}
 
-Family Safety Monitoring
+                    <div className="
+                    hidden
+                    md:flex
+                    items-center
+                    gap-3
+                    px-5
+                    py-3
+                    rounded-2xl
+                    bg-black/30
+                    border
+                    border-white/10
+                    ">
+
+                        <div
+
+                            className={`
+                            h-3
+                            w-3
+                            rounded-full
+
+                            ${
+                                isOnline
+                                    ? "bg-green-400 shadow-[0_0_20px_#22c55e]"
+                                    : "bg-red-400 shadow-[0_0_20px_#ef4444]"
+                            }
+                            `}
+
+                        />
+
+
+                        <div>
+
+                            <p className="
+                            text-xs
+                            text-gray-400
+                            ">
+
+                                SYSTEM STATUS
+
+                            </p>
+
+
+                            <p className={`
+                            text-sm
+
+                            ${
+                                isOnline
+                                    ? "text-green-300"
+                                    : "text-red-300"
+                            }
+                            `}>
+
+                                {
+                                    isOnline
+                                        ? "AI Tracking Active"
+                                        : "Guardian Offline"
+                                }
 
-</p>
+                            </p>
+
+                        </div>
 
+                    </div>
+
+
+                    {/* ==================================================
+                        PROFILE
+                    ================================================== */}
+
+                    <div className="
+                    flex
+                    items-center
+                    gap-4
+                    ">
+
+                        <button
+
+                            type="button"
+
+                            onClick={() =>
+                                setShowProfile(true)
+                            }
+
+                            className="
+                            flex
+                            items-center
+                            gap-3
+                            px-4
+                            py-2
+                            rounded-2xl
+                            bg-white/5
+                            border
+                            border-white/10
+                            hover:bg-white/10
+                            transition
+                            cursor-pointer
+                            "
 
+                        >
 
-</div>
+                            <div className="
+                            h-9
+                            w-9
+                            rounded-xl
+                            overflow-hidden
+                            bg-gradient-to-br
+                            from-blue-500
+                            to-violet-500
+                            flex
+                            items-center
+                            justify-center
+                            ">
 
+                                {
+                                    profileImage ? (
 
+                                        <img
+                                            src={profileImage}
+                                            alt="Guardian profile"
+                                            className="
+                                            h-full
+                                            w-full
+                                            object-cover
+                                            "
+                                        />
 
-</div>
+                                    ) : (
 
+                                        <FiUser
+                                            className="
+                                            text-white
+                                            "
+                                        />
 
+                                    )
+                                }
 
+                            </div>
+
 
+                            <div className="hidden md:block">
 
+                                <p className="
+                                text-sm
+                                text-white
+                                ">
 
-<div className="
-hidden
-md:flex
-items-center
-gap-3
-px-5
-py-3
-rounded-2xl
-bg-black/30
-border
-border-white/10
-">
+                                    {
+                                        guardian?.full_name ||
+                                        "Guardian"
+                                    }
 
+                                </p>
 
-<div
 
-className={`
-h-3
-w-3
-rounded-full
+                                <div className="
+                                flex
+                                items-center
+                                gap-2
+                                ">
 
-${
-guardian?.is_online
-?
-"bg-green-400 shadow-[0_0_20px_#22c55e]"
-:
-"bg-red-400 shadow-[0_0_20px_#ef4444]"
-}
+                                    <div className={`
+                                    h-2
+                                    w-2
+                                    rounded-full
+
+                                    ${
+                                        isOnline
+                                            ? "bg-green-400"
+                                            : "bg-red-400"
+                                    }
+                                    `} />
 
-`}
+                                    <p className="
+                                    text-xs
+                                    text-gray-400
+                                    ">
 
-/>
+                                        {
+                                            isOnline
+                                                ? "Online"
+                                                : "Offline"
+                                        }
 
+                                    </p>
 
+                                </div>
 
-<div>
+                            </div>
 
+                        </button>
 
-<p className="
-text-xs
-text-gray-400
-">
+                    </div>
 
-SYSTEM STATUS
+                </div>
+
+            </motion.div>
 
-</p>
+
+            {/* ==================================================
+                PROFILE POPUP
+            ================================================== */}
+
+            {
+                showProfile && (
+
+                    <div
+
+                        className="
+                        fixed
+                        inset-0
+                        z-50
+                        flex
+                        items-center
+                        justify-center
+                        bg-black/70
+                        backdrop-blur-sm
+                        "
+
+                        onClick={() =>
+                            setShowProfile(false)
+                        }
+
+                    >
+
+                        <div
+
+                            className="
+                            relative
+                            w-[90%]
+                            max-w-md
+                            rounded-3xl
+                            border
+                            border-white/10
+                            bg-[#111827]
+                            p-6
+                            shadow-[0_0_50px_rgba(59,130,246,.25)]
+                            "
 
+                            onClick={(event) =>
+                                event.stopPropagation()
+                            }
 
+                        >
 
-<p
+                            <button
 
-className={`
-text-sm
+                                type="button"
 
-${
-guardian?.is_online
-?
-"text-green-300"
-:
-"text-red-300"
-}
+                                onClick={() =>
+                                    setShowProfile(false)
+                                }
 
-`}
+                                className="
+                                absolute
+                                right-4
+                                top-4
+                                p-2
+                                rounded-xl
+                                bg-white/5
+                                border
+                                border-white/10
+                                text-gray-300
+                                hover:bg-white/10
+                                "
 
->
+                            >
 
+                                <FiX />
 
-{
-guardian?.is_online
-?
-"AI Tracking Active"
-:
-"Guardian Offline"
-}
+                            </button>
 
 
+                            <div className="
+                            flex
+                            flex-col
+                            items-center
+                            ">
 
-</p>
 
+                                {/* PROFILE IMAGE */}
 
+                                <div className="
+                                h-32
+                                w-32
+                                rounded-3xl
+                                overflow-hidden
+                                bg-gradient-to-br
+                                from-blue-500
+                                to-violet-500
+                                flex
+                                items-center
+                                justify-center
+                                border
+                                border-white/10
+                                ">
 
-</div>
+                                    {
+                                        profileImage ? (
 
+                                            <img
+                                                src={profileImage}
+                                                alt="Guardian profile"
+                                                className="
+                                                h-full
+                                                w-full
+                                                object-cover
+                                                "
+                                            />
 
+                                        ) : (
 
-</div>
+                                            <FiUser
+                                                className="
+                                                text-white
+                                                text-5xl
+                                                "
+                                            />
 
+                                        )
+                                    }
 
+                                </div>
 
 
+                                {/* ==================================================
+                                    UPLOAD BUTTON
+                                ================================================== */}
 
+                                <input
 
-<div className="
-flex
-items-center
-gap-4
-">
+                                    ref={fileInputRef}
 
+                                    type="file"
 
+                                    accept="image/jpeg,image/png,image/webp"
 
-<button
+                                    onChange={
+                                        handleProfilePictureUpload
+                                    }
 
-className="
-relative
-p-3
-rounded-2xl
-bg-white/5
-border
-border-white/10
-"
+                                    className="hidden"
 
->
+                                />
 
 
-<FiBell
+                                <button
 
-className="
-text-gray-300
-text-xl
-"
+                                    type="button"
 
-/>
+                                    onClick={() =>
+                                        fileInputRef.current?.click()
+                                    }
 
+                                    disabled={uploading}
 
+                                    className="
+                                    mt-4
+                                    flex
+                                    items-center
+                                    gap-2
+                                    px-4
+                                    py-2
+                                    rounded-xl
+                                    bg-blue-500/20
+                                    border
+                                    border-blue-400/30
+                                    text-blue-300
+                                    hover:bg-blue-500/30
+                                    transition
+                                    disabled:opacity-50
+                                    disabled:cursor-not-allowed
+                                    "
 
-<span
+                                >
 
-className="
-absolute
-top-2
-right-2
-h-2
-w-2
-rounded-full
-bg-red-400
-"
+                                    <FiCamera />
 
-/>
+                                    {
+                                        uploading
+                                            ? "Uploading..."
+                                            : "Upload Profile Picture"
+                                    }
 
+                                </button>
 
 
-</button>
+                                <h2 className="
+                                mt-5
+                                text-xl
+                                font-semibold
+                                text-white
+                                ">
 
+                                    {
+                                        guardian?.full_name ||
+                                        "Guardian"
+                                    }
 
+                                </h2>
 
 
+                                {
+                                    guardian?.email && (
 
+                                        <p className="
+                                        mt-1
+                                        text-sm
+                                        text-gray-400
+                                        ">
 
+                                            {guardian.email}
 
-<div className="
-flex
-items-center
-gap-3
-px-4
-py-2
-rounded-2xl
-bg-white/5
-border
-border-white/10
-">
+                                        </p>
 
+                                    )
+                                }
 
 
-<div className="
-h-9
-w-9
-rounded-xl
-bg-gradient-to-br
-from-blue-500
-to-violet-500
-flex
-items-center
-justify-center
-">
+                                <div className="
+                                mt-4
+                                flex
+                                items-center
+                                gap-2
+                                ">
 
+                                    <div className={`
+                                    h-2.5
+                                    w-2.5
+                                    rounded-full
 
-<FiUser/>
+                                    ${
+                                        isOnline
+                                            ? "bg-green-400"
+                                            : "bg-red-400"
+                                    }
+                                    `} />
 
-</div>
 
+                                    <span className="
+                                    text-sm
+                                    text-gray-300
+                                    ">
 
+                                        {
+                                            isOnline
+                                                ? "Online"
+                                                : "Offline"
+                                        }
 
+                                    </span>
 
+                                </div>
 
-<div className="hidden md:block">
 
+                                {/* ==================================================
+                                    LOGOUT BUTTON
+                                ================================================== */}
 
+                                <button
 
-<p className="
-text-sm
-text-white
-">
+                                    type="button"
 
+                                    onClick={handleLogout}
 
-{
-guardian?.full_name || "Guardian"
-}
+                                    className="
+                                    mt-6
+                                    w-full
+                                    flex
+                                    items-center
+                                    justify-center
+                                    gap-2
+                                    rounded-xl
+                                    bg-red-500/15
+                                    border
+                                    border-red-400/30
+                                    px-4
+                                    py-3
+                                    text-sm
+                                    font-medium
+                                    text-red-300
+                                    hover:bg-red-500/25
+                                    hover:text-red-200
+                                    transition
+                                    "
 
+                                >
 
-</p>
+                                    <FiLogOut />
 
+                                    Logout
 
+                                </button>
 
+                            </div>
 
+                        </div>
 
-<div className="
-flex
-items-center
-gap-2
-">
+                    </div>
 
+                )
+            }
 
+        </>
 
-<div
-
-className={`
-h-2
-w-2
-rounded-full
-
-${
-guardian?.is_online
-?
-"bg-green-400"
-:
-"bg-red-400"
-}
-
-`}
-
-/>
-
-
-
-
-<p className="
-text-xs
-text-gray-400
-">
-
-
-{
-guardian?.is_online
-?
-"Online"
-:
-"Offline"
-}
-
-
-</p>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-</motion.div>
-
-);
+    );
 
 }

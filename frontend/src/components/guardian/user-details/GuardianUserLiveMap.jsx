@@ -1,383 +1,516 @@
 import { motion } from "framer-motion";
 
 import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Circle
+    MapContainer,
+    TileLayer,
+    Marker,
+    Popup,
+    Circle,
+    useMap
 } from "react-leaflet";
-import { useEffect, useRef } from "react";
-import { useMap } from "react-leaflet";
+
+import { useEffect } from "react";
+
 import "leaflet/dist/leaflet.css";
 
 import {
-  FiMapPin,
-  FiNavigation
+    FiMapPin,
+    FiNavigation
 } from "react-icons/fi";
 
 
+// ==========================================================
+// AUTO FOCUS MAP ON LIVE LOCATION
+// ==========================================================
 
-import { useEffect } from "react";
-import { useMap } from "react-leaflet";
-
-function MapAutoFocus({ latitude, longitude }) {
+function MapAutoFocus({
+    latitude,
+    longitude
+}) {
 
     const map = useMap();
+
 
     useEffect(() => {
 
         if (
             latitude == null ||
             longitude == null
-        ) return;
+        ) {
+            return;
+        }
 
-        setTimeout(() => {
 
-            map.flyTo(
-                [latitude, longitude],
-                17,
-                {
-                    animate: true,
-                    duration: 2
-                }
-            );
+        map.flyTo(
+            [
+                latitude,
+                longitude
+            ],
+            17,
+            {
+                animate: true,
+                duration: 1.5
+            }
+        );
 
-        }, 300);
 
-    }, [latitude, longitude]);
+    }, [
+        latitude,
+        longitude,
+        map
+    ]);
+
 
     return null;
 }
 
 
+// ==========================================================
+// LIVE USER MAP
+// ==========================================================
 
 export default function GuardianUserLiveMap({
-
-user
-
+    user
 }) {
 
 
-const latitude = Number(
-    user?.latitude ??
-    user?.location?.latitude
-);
+    // ======================================================
+    // GET LOCATION DIRECTLY FROM API RESPONSE
+    // ======================================================
 
+    const latitude =
+        Number(user?.latitude);
 
-const longitude = Number(
-    user?.longitude ??
-    user?.location?.longitude
-);
+    const longitude =
+        Number(user?.longitude);
 
 
-const location = {
-    lat: latitude,
-    lng: longitude
-};
+    const hasLocation =
+        Number.isFinite(latitude) &&
+        Number.isFinite(longitude);
 
-if(
-    !location.lat ||
-    !location.lng
-){
 
-return (
+    // ======================================================
+    // NO LOCATION
+    // ======================================================
 
-<div
-className="
-rounded-3xl
-border
-border-white/10
-bg-white/5
-p-6
-text-gray-400
-"
->
+    if (!hasLocation) {
 
-Live location not available
+        return (
 
-</div>
+            <motion.div
 
-);
+                initial={{
+                    opacity: 0,
+                    y: 30
+                }}
 
-}
+                animate={{
+                    opacity: 1,
+                    y: 0
+                }}
 
-return (
+                className="
+                rounded-3xl
+                border
+                border-white/10
+                bg-white/5
+                p-6
+                text-gray-400
+                "
 
-<motion.div
+            >
 
-initial={{
-opacity:0,
-y:30
-}}
+                Live location not available
 
-animate={{
-opacity:1,
-y:0
-}}
+            </motion.div>
 
-transition={{
-duration:0.5
-}}
+        );
 
-className="
-rounded-3xl
-border
-border-white/10
-bg-white/5
-backdrop-blur-2xl
-p-6
-overflow-hidden
-"
+    }
 
->
 
+    // ======================================================
+    // USER NAME
+    // ======================================================
 
+    const userName =
+        user?.user_name ||
+        user?.full_name ||
+        "User";
 
-{/* Header */}
 
-<div
+    // ======================================================
+    // ONLINE STATUS
+    // ======================================================
 
-className="
-flex
-items-center
-gap-3
-mb-5
-"
+    const isOnline =
+        user?.is_online === true ||
+        user?.is_online === 1 ||
+        user?.is_online === "1" ||
+        user?.is_online === "true";
 
->
 
+    return (
 
-<div
+        <motion.div
 
-className="
-p-3
-rounded-2xl
-bg-blue-500/20
-"
+            initial={{
+                opacity: 0,
+                y: 30
+            }}
 
->
+            animate={{
+                opacity: 1,
+                y: 0
+            }}
 
-<FiMapPin
+            transition={{
+                duration: 0.5
+            }}
 
-className="
-text-blue-400
-text-xl
-"
+            className="
+            rounded-3xl
+            border
+            border-white/10
+            bg-white/5
+            backdrop-blur-2xl
+            p-6
+            overflow-hidden
+            "
 
-/>
+        >
 
-</div>
 
+            {/* ==================================================
+                HEADER
+            ================================================== */}
 
+            <div className="
+            flex
+            items-center
+            justify-between
+            mb-5
+            ">
 
-<div>
 
+                <div className="
+                flex
+                items-center
+                gap-3
+                ">
 
-<h2
 
-className="
-text-white
-font-semibold
-"
+                    <div className="
+                    p-3
+                    rounded-2xl
+                    bg-blue-500/20
+                    ">
 
->
+                        <FiMapPin
+                            className="
+                            text-blue-400
+                            text-xl
+                            "
+                        />
 
-Live Location
+                    </div>
 
-</h2>
 
+                    <div>
 
-<p
+                        <h2 className="
+                        text-white
+                        font-semibold
+                        ">
 
-className="
-text-xs
-text-gray-400
-"
+                            Live Location
 
->
+                        </h2>
 
-{user?.name || "User"} current position
 
-</p>
+                        <p className="
+                        text-xs
+                        text-gray-400
+                        ">
 
+                            {userName} current position
 
-</div>
+                        </p>
 
+                    </div>
 
-</div>
 
+                </div>
 
 
+                {/* ONLINE STATUS */}
 
+                <div className="
+                flex
+                items-center
+                gap-2
+                px-3
+                py-2
+                rounded-xl
+                bg-black/30
+                border
+                border-white/10
+                ">
 
-{/* Map */}
 
-<div
+                    <div className={`
+                    h-2.5
+                    w-2.5
+                    rounded-full
 
-className="
-h-[350px]
-rounded-3xl
-overflow-hidden
-border
-border-white/10
-"
+                    ${
+                        isOnline
+                            ? "bg-green-400 shadow-[0_0_12px_#22c55e]"
+                            : "bg-red-400 shadow-[0_0_12px_#ef4444]"
+                    }
 
->
+                    `} />
 
 
-<MapContainer
+                    <span className={`
+                    text-xs
 
-center={[
-location.lat,
-location.lng
-]}
+                    ${
+                        isOnline
+                            ? "text-green-300"
+                            : "text-red-300"
+                    }
 
-zoom={15}
+                    `}>
 
-style={{
+                        {
+                            isOnline
+                                ? "Live"
+                                : "Offline"
+                        }
 
-height:"100%",
+                    </span>
 
-width:"100%"
+                </div>
 
-}}
 
->
+            </div>
 
 
-<TileLayer
+            {/* ==================================================
+                MAP
+            ================================================== */}
 
-url="
-https://tile.openstreetmap.org/{z}/{x}/{y}.png
-"
+            <div className="
+            h-[350px]
+            rounded-3xl
+            overflow-hidden
+            border
+            border-white/10
+            ">
 
-/>
 
-<MapAutoFocus
+                <MapContainer
 
-latitude={location.lat}
+                    center={[
+                        latitude,
+                        longitude
+                    ]}
 
-longitude={location.lng}
+                    zoom={17}
 
-/>
+                    scrollWheelZoom={true}
 
+                    style={{
+                        height: "100%",
+                        width: "100%"
+                    }}
 
+                >
 
-<Marker
 
-position={[
-location.lat,
-location.lng
-]}
+                    <TileLayer
 
->
+                        url="
+                        https://tile.openstreetmap.org/{z}/{x}/{y}.png
+                        "
 
+                        attribution="
+                        © OpenStreetMap contributors
+                        "
 
-<Popup>
+                    />
 
-{user?.name}
 
-<br/>
+                    {/* Automatically move map when location changes */}
 
-Live Location
+                    <MapAutoFocus
 
-</Popup>
+                        latitude={latitude}
 
+                        longitude={longitude}
 
-</Marker>
+                    />
 
 
+                    {/* ==================================================
+                        LIVE MARKER
+                    ================================================== */}
 
+                    <Marker
 
-<Circle
+                        position={[
+                            latitude,
+                            longitude
+                        ]}
 
-center={[
-location.lat,
-location.lng
-]}
+                    >
 
-radius={300}
+                        <Popup>
 
-/>
+                            <div className="
+                            text-black
+                            ">
 
+                                <strong>
+                                    {userName}
+                                </strong>
 
+                                <br />
 
-</MapContainer>
+                                Live Location
 
+                                <br />
 
-</div>
+                                Status:{" "}
 
+                                {
+                                    isOnline
+                                        ? "Online"
+                                        : "Offline"
+                                }
 
+                            </div>
 
+                        </Popup>
 
+                    </Marker>
 
-{/* Location Info */}
 
-<div
+                    {/* ==================================================
+                        LOCATION RADIUS
+                    ================================================== */}
 
-className="
-mt-5
-rounded-2xl
-bg-black/30
-border
-border-white/10
-p-4
-flex
-items-center
-gap-3
-"
+                    <Circle
 
->
+                        center={[
+                            latitude,
+                            longitude
+                        ]}
 
+                        radius={300}
 
-<FiNavigation
+                        pathOptions={{
+                            color:
+                                isOnline
+                                    ? "green"
+                                    : "red",
 
-className="
-text-green-400
-"
+                            fillColor:
+                                isOnline
+                                    ? "green"
+                                    : "red",
 
-/>
+                            fillOpacity: 0.15
+                        }}
 
+                    />
 
-<div>
 
+                </MapContainer>
 
-<p
 
-className="
-text-xs
-text-gray-400
-"
+            </div>
 
->
 
-Current Area
+            {/* ==================================================
+                LOCATION INFORMATION
+            ================================================== */}
 
-</p>
+            <div className="
+            mt-5
+            rounded-2xl
+            bg-black/30
+            border
+            border-white/10
+            p-4
+            flex
+            items-center
+            gap-3
+            ">
 
 
-<p
-className="
-text-white
-"
+                <FiNavigation
+                    className={`
+                    ${
+                        isOnline
+                            ? "text-green-400"
+                            : "text-red-400"
+                    }
+                    `}
+                />
 
->
 
-{user?.location || "Unknown Location"}
+                <div>
 
-</p>
+                    <p className="
+                    text-xs
+                    text-gray-400
+                    ">
 
+                        Current Coordinates
 
-</div>
+                    </p>
 
 
-</div>
+                    <p className="
+                    text-white
+                    text-sm
+                    ">
 
+                        {latitude}, {longitude}
 
+                    </p>
 
-</motion.div>
 
-);
+                    {
+                        user?.timestamp && (
+
+                            <p className="
+                            text-xs
+                            text-gray-500
+                            mt-1
+                            ">
+
+                                Last update:{" "}
+                                {new Date(
+                                    user.timestamp
+                                ).toLocaleString()}
+
+                            </p>
+
+                        )
+                    }
+
+                </div>
+
+
+            </div>
+
+
+        </motion.div>
+
+    );
 
 }

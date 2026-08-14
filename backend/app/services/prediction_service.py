@@ -10,6 +10,9 @@ from app.ml.predictor import predict_next_location
 
 from app.utils.location_utils import calculate_distance
 
+import math
+from datetime import datetime
+
 from app.services.geocoding_service import (
     get_location_name
 )
@@ -73,6 +76,122 @@ def train_user_model(
 
     return True
 
+def calculate_distance_km(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+):
+    R = 6371.0
+
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+
+    delta_lat = math.radians(
+        lat2 - lat1
+    )
+
+    delta_lon = math.radians(
+        lon2 - lon1
+    )
+
+    a = (
+        math.sin(delta_lat / 2) ** 2
+        +
+        math.cos(lat1_rad)
+        *
+        math.cos(lat2_rad)
+        *
+        math.sin(delta_lon / 2) ** 2
+    )
+
+    c = 2 * math.atan2(
+        math.sqrt(a),
+        math.sqrt(1 - a)
+    )
+
+    return R * c
+
+
+
+def calculate_prediction_eta(
+    db: Session,
+    user_id: int,
+    predicted_latitude: float,
+    predicted_longitude: float
+):
+
+    history = get_location_history(
+        db,
+        user_id
+    )
+
+    if len(history) < 2:
+        return None
+
+    latest = history[-1]
+
+    # Find the most recent previous location
+    # where the user actually moved.
+    previous = None
+
+    for location in reversed(history[:-1]):
+
+        distance_km = calculate_distance_km(
+            location.latitude,
+            location.longitude,
+            latest.latitude,
+            latest.longitude
+        )
+
+        if distance_km > 0.001:
+            previous = location
+            break
+
+    if previous is None:
+        return None
+
+    if not latest.timestamp or not previous.timestamp:
+        return None
+
+    time_difference = (
+        latest.timestamp -
+        previous.timestamp
+    ).total_seconds()
+
+    if time_difference <= 0:
+        return None
+
+    speed_kmh = (
+        distance_km /
+        (time_difference / 3600)
+    )
+
+    # Ignore invalid/unrealistic GPS speed
+    if speed_kmh <= 0 or speed_kmh > 150:
+        return None
+
+    prediction_distance_km = calculate_distance_km(
+        latest.latitude,
+        latest.longitude,
+        predicted_latitude,
+        predicted_longitude
+    )
+
+    if prediction_distance_km <= 0:
+        return 0
+
+    eta_minutes = round(
+        (
+            prediction_distance_km /
+            speed_kmh
+        ) * 60
+    )
+
+    return max(
+        1,
+        eta_minutes
+    )
 
 
 

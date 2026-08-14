@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from app.services.prediction_service import calculate_prediction_eta
 from app.database.database import get_db
 
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-
+from app.models.location import Location
 
 from app.services.prediction_service import (
     train_user_model,
@@ -35,6 +35,8 @@ def train_model(
     }
 
 
+
+
 @router.get("/next/{user_id}")
 def predict_next_location(
     user_id: int,
@@ -42,36 +44,69 @@ def predict_next_location(
     current_user: User = Depends(get_current_user)
 ):
 
-  if current_user.id != user_id and current_user.role != "GUARDIAN":
-    raise HTTPException(
-        status_code=403,
-        detail="Unauthorized"
-    )
+    if current_user.id != user_id and current_user.role != "GUARDIAN":
+        raise HTTPException(
+            status_code=403,
+            detail="Unauthorized"
+        )
 
-    latest = get_latest_prediction(
+    latest_prediction = get_latest_prediction(
         db,
         user_id
     )
 
-    if latest:
+    if latest_prediction:
+
+        eta_minutes = calculate_prediction_eta(
+            db=db,
+            user_id=user_id,
+            predicted_latitude=latest_prediction.predicted_latitude,
+            predicted_longitude=latest_prediction.predicted_longitude
+        )
 
         return {
-            "id": latest.id,
-            "location": latest.predicted_location,
-            "predicted_latitude": latest.predicted_latitude,
-            "predicted_longitude": latest.predicted_longitude,
-            "actual_latitude": latest.actual_latitude,
-            "actual_longitude": latest.actual_longitude,
-            "confidence": latest.confidence,
-            "prediction_accuracy": latest.prediction_accuracy,
-            "matched": latest.matched,
-            "created_at": latest.created_at
+            "id": latest_prediction.id,
+
+            "location":
+                latest_prediction.predicted_location,
+
+            "predicted_latitude":
+                latest_prediction.predicted_latitude,
+
+            "predicted_longitude":
+                latest_prediction.predicted_longitude,
+
+            "actual_latitude":
+                latest_prediction.actual_latitude,
+
+            "actual_longitude":
+                latest_prediction.actual_longitude,
+
+            "confidence":
+                latest_prediction.confidence,
+
+            "prediction_accuracy":
+                latest_prediction.prediction_accuracy,
+
+            "matched":
+                latest_prediction.matched,
+
+            "eta":
+                f"{eta_minutes} min"
+                if eta_minutes is not None
+                else None,
+
+            "created_at":
+                latest_prediction.created_at
         }
 
     return generate_prediction(
         db,
         user_id
     )
+
+
+
 
 
 @router.get("/history/{user_id}")

@@ -131,9 +131,8 @@ class MainActivity : ComponentActivity() {
             if (!token.isNullOrBlank()) {
 
                 navController.navigate(
-                    "reset-password?token=$token"
+                    "reset-password?token=${Uri.encode(token)}"
                 ) {
-
                     launchSingleTop = true
                 }
             }

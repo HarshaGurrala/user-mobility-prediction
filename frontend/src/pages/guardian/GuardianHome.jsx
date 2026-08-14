@@ -9,7 +9,7 @@ import {
 
 import GuardianTopBar from "../../components/guardian/GuardianTopBar";
 import GuardianLinkedUsers from "../../components/guardian/GuardianLinkedUsers";
-import GuardianSafetyCard from "../../components/guardian/GuardianSafetyCard";
+
 import GuardianLiveMapCard from "../../components/guardian/GuardianLiveMapCard";
 import GuardianFamilyChart from "../../components/guardian/GuardianFamilyChart";
 import GuardianAlertFeed from "../../components/guardian/GuardianAlertFeed";
@@ -153,10 +153,6 @@ space-y-6
 
 >
 
-
-
-
-
 {/* Linked Users */}
 
 <GuardianLinkedUsers />
@@ -169,25 +165,10 @@ space-y-6
 
 {/* Safety + Live Map */}
 
-<div
-
-className="
-grid
-grid-cols-1
-lg:grid-cols-2
-gap-6
-"
-
->
-
-
-<GuardianSafetyCard />
-
-
-<GuardianLiveMapCard />
-
-
+<div className="lg:col-span-2">
+    <GuardianLiveMapCard />
 </div>
+
 
 
 

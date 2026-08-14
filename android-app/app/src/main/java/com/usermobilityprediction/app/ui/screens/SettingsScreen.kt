@@ -14,30 +14,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.usermobilityprediction.app.navigation.Routes
+import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.usermobilityprediction.app.viewmodel.GuardianRequestViewModel
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+import com.usermobilityprediction.app.data.storage.TokenManager
+
+
 @Composable
 fun SettingsScreen(
     navController: NavController
-
 ) {
-
 
     var locationTracking by remember {
         mutableStateOf(true)
     }
 
+    val context = LocalContext.current
 
+    val tokenManager = remember {
+        TokenManager(context.applicationContext)
+    }
+
+    val userId = tokenManager.getUserId()
 
     val guardianViewModel: GuardianRequestViewModel = viewModel()
 
-    val requests by guardianViewModel.requests.collectAsState()
+    val requests by
+    guardianViewModel.requests.collectAsState()
 
     val connectedGuardians by
     guardianViewModel.connectedGuardians.collectAsState()
+
     LaunchedEffect(Unit) {
 
         guardianViewModel.loadRequests()
@@ -61,6 +72,7 @@ fun SettingsScreen(
     var aiPredictionAlerts by remember {
         mutableStateOf(true)
     }
+
 
     Box(
         modifier = Modifier
@@ -92,179 +104,322 @@ fun SettingsScreen(
                 modifier = Modifier.height(30.dp)
             )
 
+
+            // ==========================================================
             // ACCOUNT
+            // ==========================================================
 
             SettingsSectionTitle(
                 title = "Account"
             )
+
 
             SettingsItem(
                 icon = Icons.Default.Person,
                 title = "Edit Profile",
                 subtitle = "Update your personal information",
                 onClick = {
+
                     navController.navigate(
                         Routes.EDIT_PROFILE
                     )
+
                 }
             )
 
-//            if (connectedGuardians.isNotEmpty()) {
-//                Spacer(
-//                    modifier = Modifier.height(8.dp)
-//                )
-//
-//                Text(
-//                    text = "Connected Guardians",
-//                    color = Color.White,
-//                    style = MaterialTheme.typography.titleSmall,
-//                    modifier = Modifier.padding(
-//                        top = 8.dp,
-//                        bottom = 8.dp
-//                    )
-//                )
-//
-//                connectedGuardians.forEach { guardian ->
-//
-//                    Card(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(vertical = 5.dp),
-//
-//                        shape = RoundedCornerShape(16.dp),
-//
-//                        colors = CardDefaults.cardColors(
-//                            containerColor =
-//                                Color.White.copy(alpha = 0.05f)
-//                        )
-//                    ) {
-//
-//                        Row(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp),
-//
-//                            verticalAlignment =
-//                                Alignment.CenterVertically
-//                        ) {
-//
-//                            Icon(
-//                                imageVector =
-//                                    Icons.Default.Person,
-//
-//                                contentDescription = null,
-//
-//                                tint =
-//                                    Color(0xFF3B82F6),
-//
-//                                modifier =
-//                                    Modifier.size(32.dp)
-//                            )
-//
-//                            Spacer(
-//                                modifier =
-//                                    Modifier.width(16.dp)
-//                            )
-//
-//                            Column(
-//                                modifier =
-//                                    Modifier.weight(1f)
-//                            ) {
-//
-//                                Text(
-//                                    text = guardian.name,
-//                                    color = Color.White,
-//                                    style =
-//                                        MaterialTheme.typography.titleMedium
-//                                )
-//
-//                                Text(
-//                                    text = guardian.email,
-//                                    color = Color.Gray,
-//                                    style =
-//                                        MaterialTheme.typography.bodySmall
-//                                )
-//
-//                                guardian.phone?.let {
-//
-//                                    Text(
-//                                        text = it,
-//                                        color = Color.Gray,
-//                                        style =
-//                                            MaterialTheme.typography.bodySmall
-//                                    )
-//                                }
-//
-//                                Text(
-//                                    text = "SafePath ID: ${guardian.safe_path_id}",
-//                                    color = Color.Gray,
-//                                    style =
-//                                        MaterialTheme.typography.bodySmall
-//                                )
-//                            }
-//
-//                            Text(
-//                                text = "Connected",
-//                                color = Color(0xFF22C55E),
-//                                style =
-//                                    MaterialTheme.typography.bodySmall
-//                            )
-//                        }
-//                    }
-//                }
-//
-//
-//            }
+
+            // ==========================================================
+            // PENDING GUARDIAN REQUESTS
+            // ==========================================================
+
+            if (requests.isNotEmpty()) {
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                Text(
+                    text = "Pending Guardian Requests",
+                    color = Color.White,
+                    style =
+                        MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(
+                        top = 8.dp,
+                        bottom = 8.dp
+                    )
+                )
+
+
+                requests.forEach { request ->
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp),
+
+                        shape =
+                            RoundedCornerShape(16.dp),
+
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor =
+                                    Color.White.copy(
+                                        alpha = 0.05f
+                                    )
+                            )
+                    ) {
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+
+
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth(),
+
+                                verticalAlignment =
+                                    Alignment.CenterVertically
+                            ) {
+
+
+                                Icon(
+                                    imageVector =
+                                        Icons.Default.Person,
+
+                                    contentDescription =
+                                        null,
+
+                                    tint =
+                                        Color(0xFFF59E0B),
+
+                                    modifier =
+                                        Modifier.size(32.dp)
+                                )
+
+
+                                Spacer(
+                                    modifier =
+                                        Modifier.width(16.dp)
+                                )
+
+
+                                Column(
+                                    modifier =
+                                        Modifier.weight(1f)
+                                ) {
+
+
+                                    Text(
+                                        text =
+                                            request.guardian_name,
+
+                                        color =
+                                            Color.White,
+
+                                        style =
+                                            MaterialTheme
+                                                .typography
+                                                .titleMedium
+                                    )
+
+
+                                    Text(
+                                        text =
+                                            request.guardian_email,
+
+                                        color =
+                                            Color.Gray,
+
+                                        style =
+                                            MaterialTheme
+                                                .typography
+                                                .bodySmall
+                                    )
+
+
+                                    request.guardian_phone?.let {
+
+                                        Text(
+                                            text = it,
+
+                                            color =
+                                                Color.Gray,
+
+                                            style =
+                                                MaterialTheme
+                                                    .typography
+                                                    .bodySmall
+                                        )
+                                    }
+
+
+                                    Text(
+                                        text =
+                                            "SafePath ID: ${request.guardian_safe_path_id}",
+
+                                        color =
+                                            Color.Gray,
+
+                                        style =
+                                            MaterialTheme
+                                                .typography
+                                                .bodySmall
+                                    )
+                                }
+                            }
+
+
+                            Spacer(
+                                modifier =
+                                    Modifier.height(12.dp)
+                            )
+
+
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth(),
+
+                                horizontalArrangement =
+                                    Arrangement.spacedBy(10.dp)
+                            ) {
+
+
+                                // ACCEPT
+                                Button(
+                                    onClick = {
+
+                                        guardianViewModel
+                                            .acceptRequest(
+                                                request.request_id
+                                            )
+
+                                    },
+
+                                    modifier =
+                                        Modifier.weight(1f),
+
+                                    colors =
+                                        ButtonDefaults
+                                            .buttonColors(
+                                                containerColor =
+                                                    Color(0xFF22C55E)
+                                            ),
+
+                                    shape =
+                                        RoundedCornerShape(10.dp)
+                                ) {
+
+                                    Text(
+                                        text = "Accept",
+                                        color = Color.White
+                                    )
+                                }
+
+
+                                // REJECT
+                                OutlinedButton(
+                                    onClick = {
+
+                                        guardianViewModel
+                                            .rejectRequest(
+                                                request.request_id
+                                            )
+
+                                    },
+
+                                    modifier =
+                                        Modifier.weight(1f),
+
+                                    shape =
+                                        RoundedCornerShape(10.dp),
+
+                                    colors =
+                                        ButtonDefaults
+                                            .outlinedButtonColors(
+                                                contentColor =
+                                                    Color(0xFFEF4444)
+                                            )
+                                ) {
+
+                                    Text(
+                                        text = "Reject"
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            // ==========================================================
+            // CHANGE PASSWORD
+            // ==========================================================
 
             SettingsItem(
                 icon = Icons.Default.Lock,
                 title = "Change Password",
                 subtitle = "Update your account password",
                 onClick = {
+
                     navController.navigate(
                         Routes.CHANGE_PASSWORD
                     )
+
                 }
             )
 
-            SettingsItem(
-                icon = Icons.Default.AccountCircle,
-                title = "Profile Photo",
-                subtitle = "Change your profile picture",
-                onClick = {
-                    // Coming later
-                }
-            )
 
+//            SettingsItem(
+//                icon = Icons.Default.AccountCircle,
+//                title = "Profile Photo",
+//                subtitle = "Change your profile picture",
+//                onClick = {
+//                    // Coming later
+//                }
+//            )
+//
+//
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
 
+
+            // ==========================================================
             // SAFETY
+            // ==========================================================
 
             SettingsSectionTitle(
                 title = "Safety"
             )
 
+
             SettingsSwitchItem(
                 icon = Icons.Default.LocationOn,
                 title = "Location Tracking",
-                subtitle = "Allow SafePath AI to track your location",
+                subtitle =
+                    "Allow SafePath AI to track your location",
                 checked = locationTracking,
                 onCheckedChange = {
                     locationTracking = it
                 }
             )
 
+
             SettingsSwitchItem(
                 icon = Icons.Default.MyLocation,
                 title = "Background Location",
-                subtitle = "Continue tracking when app is in background",
+                subtitle =
+                    "Continue tracking when app is in background",
                 checked = backgroundLocation,
                 onCheckedChange = {
                     backgroundLocation = it
                 }
             )
+
 
             SettingsItem(
                 icon = Icons.Default.Shield,
@@ -278,240 +433,161 @@ fun SettingsScreen(
 
                 }
             )
-//            if (connectedGuardians.isNotEmpty()) {
-//
-//                Spacer(
-//                    modifier = Modifier.height(8.dp)
-//                )
-//
-//                Text(
-//                    text = "Connected Guardians",
-//                    color = Color.White,
-//                    style = MaterialTheme.typography.titleSmall,
-//                    modifier = Modifier.padding(
-//                        start = 42.dp,
-//                        top = 8.dp,
-//                        bottom = 8.dp
-//                    )
-//                )
-//
-//                connectedGuardians.forEach { guardian ->
-//
-//                    Card(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(
-//                                start = 42.dp,
-//                                vertical = 5.dp
-//                            ),
-//
-//                        shape = RoundedCornerShape(16.dp),
-//
-//                        colors = CardDefaults.cardColors(
-//                            containerColor =
-//                                Color.White.copy(alpha = 0.05f)
-//                        )
-//                    ) {
-//
-//                        Row(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp),
-//
-//                            verticalAlignment =
-//                                Alignment.CenterVertically
-//                        ) {
-//
-//                            Icon(
-//                                imageVector =
-//                                    Icons.Default.Person,
-//
-//                                contentDescription = null,
-//
-//                                tint =
-//                                    Color(0xFF3B82F6),
-//
-//                                modifier =
-//                                    Modifier.size(32.dp)
-//                            )
-//
-//                            Spacer(
-//                                modifier =
-//                                    Modifier.width(16.dp)
-//                            )
-//
-//                            Column(
-//                                modifier =
-//                                    Modifier.weight(1f)
-//                            ) {
-//
-//                                Text(
-//                                    text = guardian.name,
-//                                    color = Color.White,
-//                                    style =
-//                                        MaterialTheme.typography.titleMedium
-//                                )
-//
-//                                Text(
-//                                    text = guardian.email,
-//                                    color = Color.Gray,
-//                                    style =
-//                                        MaterialTheme.typography.bodySmall
-//                                )
-//
-//                                guardian.phone?.let {
-//
-//                                    Text(
-//                                        text = it,
-//                                        color = Color.Gray,
-//                                        style =
-//                                            MaterialTheme.typography.bodySmall
-//                                    )
-//                                }
-//
-//                                Text(
-//                                    text =
-//                                        "SafePath ID: ${guardian.safe_path_id}",
-//
-//                                    color = Color.Gray,
-//
-//                                    style =
-//                                        MaterialTheme.typography.bodySmall
-//                                )
-//                            }
-//
-//                            Text(
-//                                text = "Connected",
-//                                color = Color(0xFF22C55E),
-//                                style =
-//                                    MaterialTheme.typography.bodySmall
-//                            )
-//                        }
-//                    }
-//                }
-//            }
+
+
+
 
             SettingsItem(
                 icon = Icons.Default.Group,
                 title = "Guardians",
                 subtitle = "Manage connected guardians",
                 onClick = {
+
                     navController.navigate(
                         Routes.GUARDIANS
                     )
+
                 }
             )
-
-
 
 
             SettingsItem(
                 icon = Icons.Default.Warning,
                 title = "Emergency Contacts",
-                subtitle = "Manage emergency contacts",
+                subtitle = "View your emergency contacts",
                 onClick = {
-                    navController.navigate(Routes.EMERGENCY_CONTACTS)
 
+                    val userId =
+                        tokenManager.getUserId()
+
+                    navController.navigate(
+                        "emergency_contacts/$userId"
+                    )
                 }
             )
-
 
 
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
 
+
+            // ==========================================================
             // NOTIFICATIONS
+            // ==========================================================
 
             SettingsSectionTitle(
                 title = "Notifications"
             )
 
+
             SettingsSwitchItem(
                 icon = Icons.Default.Notifications,
                 title = "Safety Alerts",
-                subtitle = "Receive safety notifications",
+                subtitle =
+                    "Receive safety notifications",
                 checked = safetyAlerts,
                 onCheckedChange = {
                     safetyAlerts = it
                 }
             )
 
+
             SettingsSwitchItem(
                 icon = Icons.Default.Warning,
                 title = "Emergency Alerts",
-                subtitle = "Receive emergency notifications",
+                subtitle =
+                    "Receive emergency notifications",
                 checked = emergencyAlerts,
                 onCheckedChange = {
                     emergencyAlerts = it
                 }
             )
 
+
             SettingsSwitchItem(
                 icon = Icons.Default.Psychology,
                 title = "AI Prediction Alerts",
-                subtitle = "Receive AI prediction notifications",
+                subtitle =
+                    "Receive AI prediction notifications",
                 checked = aiPredictionAlerts,
                 onCheckedChange = {
                     aiPredictionAlerts = it
                 }
             )
 
+
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
 
+
+            // ==========================================================
             // PRIVACY
+            // ==========================================================
 
             SettingsSectionTitle(
                 title = "Privacy & Security"
             )
 
+
             SettingsItem(
                 icon = Icons.Default.Security,
                 title = "Privacy Settings",
-                subtitle = "Manage your privacy preferences",
+                subtitle =
+                    "Manage your privacy preferences",
                 onClick = {
                     // Coming later
                 }
             )
 
+
             SettingsItem(
                 icon = Icons.Default.Devices,
                 title = "Active Sessions",
-                subtitle = "Manage logged-in devices",
+                subtitle =
+                    "Manage logged-in devices",
                 onClick = {
                     // Coming later
                 }
             )
+
 
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
 
+
+            // ==========================================================
             // OTHER
+            // ==========================================================
 
             SettingsSectionTitle(
                 title = "Other"
             )
 
+
             SettingsItem(
                 icon = Icons.Default.Help,
                 title = "Help & Support",
-                subtitle = "Get help with SafePath AI",
+                subtitle =
+                    "Get help with SafePath AI",
                 onClick = {
                     // Coming later
                 }
             )
 
+
             SettingsItem(
                 icon = Icons.Default.Info,
                 title = "About SafePath AI",
-                subtitle = "Version 1.0",
+                subtitle =
+                    "Version 1.0",
                 onClick = {
                     // Coming later
                 }
             )
+
 
             Spacer(
                 modifier = Modifier.height(40.dp)
@@ -529,10 +605,12 @@ private fun SettingsSectionTitle(
     Text(
         text = title,
         color = Color(0xFF3B82F6),
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(
-            vertical = 8.dp
-        )
+        style =
+            MaterialTheme.typography.titleMedium,
+        modifier =
+            Modifier.padding(
+                vertical = 8.dp
+            )
     )
 }
 
@@ -566,12 +644,16 @@ private fun SettingsItem(
             modifier = Modifier.size(26.dp)
         )
 
+
         Spacer(
-            modifier = Modifier.width(16.dp)
+            modifier =
+                Modifier.width(16.dp)
         )
 
+
         Column(
-            modifier = Modifier.weight(1f)
+            modifier =
+                Modifier.weight(1f)
         ) {
 
             Text(
@@ -582,14 +664,21 @@ private fun SettingsItem(
             Text(
                 text = subtitle,
                 color = Color.Gray,
-                style = MaterialTheme.typography.bodySmall
+                style =
+                    MaterialTheme.typography.bodySmall
             )
         }
 
+
         Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = Color.Gray
+            imageVector =
+                Icons.Default.ChevronRight,
+
+            contentDescription =
+                null,
+
+            tint =
+                Color.Gray
         )
     }
 }
@@ -622,12 +711,16 @@ private fun SettingsSwitchItem(
             modifier = Modifier.size(26.dp)
         )
 
+
         Spacer(
-            modifier = Modifier.width(16.dp)
+            modifier =
+                Modifier.width(16.dp)
         )
 
+
         Column(
-            modifier = Modifier.weight(1f)
+            modifier =
+                Modifier.weight(1f)
         ) {
 
             Text(
@@ -638,13 +731,16 @@ private fun SettingsSwitchItem(
             Text(
                 text = subtitle,
                 color = Color.Gray,
-                style = MaterialTheme.typography.bodySmall
+                style =
+                    MaterialTheme.typography.bodySmall
             )
         }
 
+
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange =
+                onCheckedChange
         )
     }
 }

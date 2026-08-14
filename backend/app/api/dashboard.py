@@ -17,13 +17,16 @@ from app.models.prediction import Prediction
 from app.models.alert import Alert
 from app.models.user_guardian_relationship import UserGuardianRelationship
 from app.services.safety_service import get_safety_status
-
+from app.services.alert_service import get_guardian_alerts
 from app.models.safety_history import SafetyHistory
 
 
 router = APIRouter()
 
-
+user_dashboard_router = APIRouter(
+    prefix="/user-dashboard",
+    tags=["User Dashboard"]
+)
 # ==================================================
 # Guardian Web Dashboard
 # ==================================================
@@ -53,15 +56,24 @@ def dashboard(
     )
 
 
+@guardian_router.get("/{guardian_id}/alerts")
+def guardian_alerts(
+    guardian_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return get_guardian_alerts(
+        db,
+        guardian_id
+    )
+
+
 # ==================================================
 # Android User Dashboard
 # ==================================================
 
 
-user_dashboard_router = APIRouter(
-    prefix="/user-dashboard",
-    tags=["User Dashboard"]
-)
+
 
 
 @user_dashboard_router.get("/me")

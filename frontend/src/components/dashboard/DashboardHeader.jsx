@@ -1,482 +1,705 @@
 import { motion } from "framer-motion";
 
 import {
-  FiActivity,
-  FiBell,
   FiShield,
   FiUser,
+  FiX,
 } from "react-icons/fi";
 
+import { useState } from "react";
 
 
 export default function DashboardHeader({
-  user,
-  onlineStatus
+    user,
+    onlineStatus,
+    onLogout
 }) {
 
+  // ==========================================================
+  // PROFILE POPUP
+  // ==========================================================
 
-return (
+  const [showProfile, setShowProfile] = useState(false);
 
-<motion.div
 
-initial={{
-opacity:0,
-y:-30
-}}
+  // ==========================================================
+  // PROFILE IMAGE
+  // ==========================================================
 
-animate={{
-opacity:1,
-y:0
-}}
+  const profileImage =
+    user?.profile_picture
+        ? user.profile_picture.startsWith("http")
+            ? user.profile_picture
+            : `http://127.0.0.1:8000${user.profile_picture}`
+        : null;
 
-transition={{
-duration:.6
-}}
 
-className="
-mx-6
-mt-5
-rounded-3xl
-border
-border-white/10
-bg-white/5
-backdrop-blur-2xl
-px-6
-py-4
-shadow-[0_0_40px_rgba(59,130,246,.15)]
-"
+  const displayName =
+      user?.full_name ||
+      user?.user_name ||
+      "User";
 
->
 
+  return (
 
+    <>
 
-<div
+      <motion.div
 
-className="
-flex
-items-center
-justify-between
-"
+        initial={{
+          opacity: 0,
+          y: -30
+        }}
 
->
+        animate={{
+          opacity: 1,
+          y: 0
+        }}
 
+        transition={{
+          duration: .6
+        }}
 
+        className="
+        mx-6
+        mt-5
+        rounded-3xl
+        border
+        border-white/10
+        bg-white/5
+        backdrop-blur-2xl
+        px-6
+        py-4
+        shadow-[0_0_40px_rgba(59,130,246,.15)]
+        "
 
+      >
 
+        <div
 
-{/* Brand */}
+          className="
+          flex
+          items-center
+          justify-between
+          "
 
+        >
 
-<div
 
-className="
-flex
-items-center
-gap-4
-"
+          {/* ==================================================
+              BRAND
+          ================================================== */}
 
->
+          <div
 
+            className="
+            flex
+            items-center
+            gap-4
+            "
 
-<div
+          >
 
-className="
-relative
-h-12
-w-12
-rounded-2xl
-bg-gradient-to-br
-from-blue-500/40
-to-violet-500/40
-flex
-items-center
-justify-center
-"
+            <div
 
->
+              className="
+              relative
+              h-12
+              w-12
+              rounded-2xl
+              bg-gradient-to-br
+              from-blue-500/40
+              to-violet-500/40
+              flex
+              items-center
+              justify-center
+              "
 
+            >
 
-<FiShield
+              <FiShield
 
-className="
-text-blue-300
-text-2xl
-"
+                className="
+                text-blue-300
+                text-2xl
+                "
 
-/>
+              />
 
 
+              <motion.div
 
-<motion.div
+                animate={{
+                  scale: [1, 1.4, 1]
+                }}
 
-animate={{
+                transition={{
+                  repeat: Infinity,
+                  duration: 2
+                }}
 
-scale:[1,1.4,1]
+                className="
+                absolute
+                inset-0
+                rounded-2xl
+                bg-blue-400/20
+                "
 
-}}
+              />
 
-transition={{
+            </div>
 
-repeat:Infinity,
 
-duration:2
+            <div>
 
-}}
+              <h1
 
-className="
-absolute
-inset-0
-rounded-2xl
-bg-blue-400/20
-"
+                className="
+                text-white
+                font-semibold
+                text-xl
+                tracking-wide
+                "
 
-/>
+              >
 
+                Guardian AI
 
-</div>
+              </h1>
 
 
+              <p
 
+                className="
+                text-xs
+                text-gray-400
+                "
 
+              >
 
+                User Mobility Prediction System
 
+              </p>
 
-<div>
+            </div>
 
+          </div>
 
-<h1
 
-className="
-text-white
-font-semibold
-text-xl
-tracking-wide
-"
+          {/* ==================================================
+              CENTER STATUS
+          ================================================== */}
 
->
+          <div
 
-Guardian AI
+            className="
+            hidden
+            md:flex
+            items-center
+            gap-3
+            px-5
+            py-3
+            rounded-2xl
+            bg-black/30
+            border
+            border-white/10
+            "
 
-</h1>
+          >
 
+            <motion.div
 
+              animate={{
+                scale: [1, 1.3, 1]
+              }}
 
-<p
+              transition={{
+                repeat: Infinity,
+                duration: 1.5
+              }}
 
-className="
-text-xs
-text-gray-400
-"
+              className="
+              h-3
+              w-3
+              rounded-full
+              bg-green-400
+              shadow-[0_0_20px_#22c55e]
+              "
 
->
+            />
 
-User Mobility Prediction System
 
-</p>
+            <div>
 
+              <p
 
-</div>
+                className="
+                text-xs
+                text-gray-400
+                "
 
+              >
 
+                SYSTEM STATUS
 
-</div>
+              </p>
 
 
+              <p
 
+                className="
+                text-sm
+                text-green-300
+                "
 
+              >
 
+                AI Tracking Active
 
+              </p>
 
+            </div>
 
+          </div>
 
-{/* Center Status */}
 
+          {/* ==================================================
+              RIGHT SECTION
+          ================================================== */}
 
-<div
+          <div
 
-className="
-hidden
-md:flex
-items-center
-gap-3
-px-5
-py-3
-rounded-2xl
-bg-black/30
-border
-border-white/10
-"
+            className="
+            flex
+            items-center
+            gap-4
+            "
 
->
+          >
 
+            {/* ==================================================
+                PROFILE BUTTON
+            ================================================== */}
 
+            <button
 
-<motion.div
+              type="button"
 
-animate={{
+              onClick={() =>
+                setShowProfile(true)
+              }
 
-scale:[1,1.3,1]
+              className="
+              flex
+              items-center
+              gap-3
+              px-4
+              py-2
+              rounded-2xl
+              bg-white/5
+              border
+              border-white/10
+              hover:bg-white/10
+              transition
+              cursor-pointer
+              "
 
-}}
+            >
 
-transition={{
+              {/* ==================================================
+                  USER PROFILE IMAGE
+              ================================================== */}
 
-repeat:Infinity,
+              <div
 
-duration:1.5
+                className="
+                h-9
+                w-9
+                rounded-xl
+                overflow-hidden
+                bg-gradient-to-br
+                from-blue-500
+                to-violet-500
+                flex
+                items-center
+                justify-center
+                "
 
-}}
+              >
 
-className="
-h-3
-w-3
-rounded-full
-bg-green-400
-shadow-[0_0_20px_#22c55e]
-"
+                {
+                  profileImage ? (
 
->
+                    <img
 
+                      src={profileImage}
 
+                      alt="User profile"
 
-</motion.div>
+                      className="
+                      h-full
+                      w-full
+                      object-cover
+                      "
 
+                    />
 
+                  ) : (
 
+                    <FiUser
 
+                      className="
+                      text-white
+                      "
 
-<div>
+                    />
 
+                  )
+                }
 
-<p
+              </div>
 
-className="
-text-xs
-text-gray-400
-"
 
->
+              <div className="hidden md:block">
 
-SYSTEM STATUS
+                <p
 
-</p>
+                  className="
+                  text-sm
+                  text-white
+                  "
 
+                >
 
+                  {displayName}
 
-<p
+                </p>
 
-className="
-text-sm
-text-green-300
-"
 
->
+                <div
 
-AI Tracking Active
+                  className="
+                  flex
+                  items-center
+                  gap-2
+                  "
 
-</p>
+                >
 
+                  <div
 
-</div>
+                    className={`
+                    h-2
+                    w-2
+                    rounded-full
 
+                    ${
+                      onlineStatus === "online"
+                        ? "bg-green-400"
+                        : "bg-red-400"
+                    }
 
+                    `}
 
-</div>
+                  />
 
 
+                  <p
 
+                    className="
+                    text-xs
+                    text-gray-400
+                    "
 
+                  >
 
+                    {
+                      onlineStatus === "online"
+                        ? "Online"
+                        : "Offline"
+                    }
 
+                  </p>
 
+                </div>
 
+              </div>
 
-{/* Right section */}
+            </button>
 
+          </div>
 
+        </div>
 
-<div
+      </motion.div>
 
-className="
-flex
-items-center
-gap-4
-"
 
->
+      {/* ==========================================================
+          PROFILE POPUP
+      ========================================================== */}
 
+      {
+        showProfile && (
 
-<button
+          <div
 
-className="
-relative
-p-3
-rounded-2xl
-bg-white/5
-border
-border-white/10
-hover:bg-white/10
-transition
-"
+            className="
+            fixed
+            inset-0
+            z-[1000]
+            flex
+            items-center
+            justify-center
+            bg-black/70
+            backdrop-blur-sm
+            "
 
->
+            onClick={() =>
+              setShowProfile(false)
+            }
 
+          >
 
-<FiBell
+            <motion.div
 
-className="
-text-gray-300
-"
+              initial={{
+                opacity: 0,
+                scale: 0.9,
+                y: 20
+              }}
 
-/>
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0
+              }}
 
+              transition={{
+                duration: 0.25
+              }}
 
-<span
+              className="
+              relative
+              w-[90%]
+             max-w-lg
+              rounded-3xl
+              border
+              border-white/10
+              bg-[#111827]
+              p-6
+              shadow-[0_0_50px_rgba(59,130,246,.25)]
+              "
 
-className="
-absolute
-top-2
-right-2
-h-2
-w-2
-rounded-full
-bg-red-400
-"
+              onClick={(event) =>
+                event.stopPropagation()
+              }
 
-/>
+            >
 
+              {/* ==================================================
+                  CLOSE BUTTON
+              ================================================== */}
 
-</button>
+              <button
 
+                type="button"
 
+                onClick={() =>
+                  setShowProfile(false)
+                }
 
+                className="
+                absolute
+                right-4
+                top-4
+                p-2
+                rounded-xl
+                bg-white/5
+                border
+                border-white/10
+                text-gray-300
+                hover:bg-white/10
+                transition
+                "
 
+              >
 
+                <FiX />
 
+              </button>
 
 
-<div
+              {/* ==================================================
+                  PROFILE CONTENT
+              ================================================== */}
 
-className="
-flex
-items-center
-gap-3
-px-4
-py-2
-rounded-2xl
-bg-white/5
-border
-border-white/10
-"
+              <div
 
->
+                className="
+                flex
+                flex-col
+                items-center
+                "
 
+              >
 
-<div
+                {/* PROFILE IMAGE */}
 
-className="
-h-9
-w-9
-rounded-xl
-bg-gradient-to-br
-from-blue-500
-to-violet-500
-flex
-items-center
-justify-center
-"
+                <div
 
->
+                  className="
+                  h-32
+                  w-32
+                  rounded-3xl
+                  overflow-hidden
+                  bg-gradient-to-br
+                  from-blue-500
+                  to-violet-500
+                  flex
+                  items-center
+                  justify-center
+                  border
+                  border-white/10
+                  "
 
+                >
 
-<FiUser/>
+                  {
+                    profileImage ? (
 
-</div>
+                      <img
 
+                        src={profileImage}
 
+                        alt="User profile"
 
-<div className="hidden md:block">
+                        className="
+                        h-full
+                        w-full
+                        object-cover
+                        "
 
-<p
-className="
-text-sm
-text-white
-"
->
-{user?.full_name || "User"}
-</p>
+                      />
 
+                    ) : (
 
-<div className="flex items-center gap-2">
+                      <FiUser
 
+                        className="
+                        text-white
+                        text-5xl
+                        "
 
-<div
+                      />
 
-className={`
-h-2
-w-2
-rounded-full
+                    )
+                  }
 
-${
-onlineStatus === "online"
-?
-"bg-green-400"
-:
-"bg-red-400"
-}
+                </div>
 
-`}
 
-/>
+                {/* USER NAME */}
 
+                <h2
 
-<p
+                  className="
+                  mt-5
+                  text-xl
+                  font-semibold
+                  text-white
+                  "
 
-className="
-text-xs
-text-gray-400
-"
+                >
 
->
+                  {displayName}
 
-{
-onlineStatus === "online"
-?
-"Online"
-:
-"Offline"
-}
+                </h2>
 
-</p>
 
+                {/* EMAIL */}
 
-</div>
+                {
+                  user?.email && (
 
+                    <p
 
+                      className="
+                      mt-1
+                      text-sm
+                      text-gray-400
+                      "
 
-</div>
+                    >
 
+                      {user.email}
 
+                    </p>
 
-</div>
+                  )
+                }
 
 
+                {/* ONLINE STATUS */}
 
+                <div
 
-</div>
+                  className="
+                  mt-4
+                  flex
+                  items-center
+                  gap-2
+                  "
 
+                >
 
+                  <div
 
+                    className={`
+                    h-2.5
+                    w-2.5
+                    rounded-full
 
+                    ${
+                      onlineStatus === "online"
+                        ? "bg-green-400"
+                        : "bg-red-400"
+                    }
 
+                    `}
 
-</div>
+                  />
 
 
+                  <span
 
-</motion.div>
+                    className="
+                    text-sm
+                    text-gray-300
+                    "
 
-);
+                  >
 
+                    {
+                      onlineStatus === "online"
+                        ? "Online"
+                        : "Offline"
+                    }
+
+                  </span>
+
+                </div>
+
+              </div>
+
+            </motion.div>
+
+          </div>
+
+        )
+      }
+
+    </>
+
+  );
 
 }

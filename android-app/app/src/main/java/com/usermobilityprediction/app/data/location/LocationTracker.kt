@@ -21,7 +21,8 @@ package com.usermobilityprediction.app.data.location
             import kotlinx.coroutines.flow.MutableStateFlow
             import kotlinx.coroutines.flow.StateFlow
             import kotlinx.coroutines.launch
-
+            import android.location.Geocoder
+    import com.usermobilityprediction.app.data.model.LocationRequest
     class LocationTracker(
         context: Context
     ) {
@@ -73,6 +74,22 @@ package com.usermobilityprediction.app.data.location
 
                     if (userId == -1) return
 
+
+                    val geocoder = Geocoder(context)
+
+                    val address = try {
+
+                        geocoder.getFromLocation(
+                            location.latitude,
+                            location.longitude,
+                            1
+                        )?.firstOrNull()?.getAddressLine(0)
+
+                    } catch (e: Exception) {
+
+                        null
+                    }
+
                     CoroutineScope(
                         Dispatchers.IO
                     ).launch {
@@ -81,7 +98,7 @@ package com.usermobilityprediction.app.data.location
 
                             RetrofitClient.api.uploadLocation(
                                 userId,
-                                UploadLocationRequest(
+                                LocationRequest(
                                     latitude =
                                         location.latitude,
 

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -10,6 +11,8 @@ from app.core.security import (
 )
 
 from app.utils.id_generator import generate_safe_path_id
+
+
 
 
 def create_user(
@@ -77,8 +80,10 @@ def create_user(
 def authenticate_user(
     db: Session,
     email: str,
-    password: str
+    password: str,
+    device_id: str = None
 ):
+
     print("LOGIN PASSWORD:", repr(password))
     print("PASSWORD LENGTH:", len(password))
 
@@ -88,7 +93,9 @@ def authenticate_user(
     ).first()
 
     if not user:
+
         print("User not found")
+
         return None
 
     print("HASH FROM DB:", user.password)
@@ -103,13 +110,58 @@ def authenticate_user(
     print("VERIFY RESULT:", result)
 
     if not result:
+
         print("Password verification failed")
+
         return None
 
     print("Password verification successful")
 
-    # Create JWT
-    # The "sub" field contains the current user's database ID.
+
+    # ==================================================
+    # ONE DEVICE LOGIN CHECK
+    # ==================================================
+
+    # ==================================================
+# ONE DEVICE LOGIN CHECK - USER ONLY
+# ==================================================
+
+    # ==================================================
+# ONE DEVICE LOGIN CHECK
+# ONLY FOR REAL ANDROID LOGIN
+# ==================================================
+
+    if (
+        user.role == "USER"
+        and device_id is not None
+        and user.device_id is not None
+        and user.device_id != device_id
+    ):
+
+        raise HTTPException(
+            status_code=403,
+            detail="This account is already logged in on another device."
+        )
+
+    # ==================================================
+    # SAVE CURRENT DEVICE - USER ONLY
+    # ==================================================
+
+    if user.role == "USER":
+
+        user.device_id = device_id
+
+        user.is_online = True
+
+        db.commit()
+
+        db.refresh(user)
+
+
+    # ==================================================
+    # CREATE JWT
+    # ==================================================
+
     token = create_access_token(
         {
             "sub": str(user.id),

@@ -1,178 +1,152 @@
+
+
+
+
+
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  getCurrentLocation,
-  getLocationHistory,
-  getPrediction,
-  getAlerts,
-  getUserProfile,
+    getCurrentLocation,
+    getLocationHistory,
+    getPrediction,
+    getAlerts,
+    getUserProfile,
+    getMovementAnalytics,
+    getSafeLocations,
 } from "../services/locationService";
-
-import {
-    getMovementAnalytics
-} from "../services/locationService";
-
-import {
-  getSafeLocations,
-} from "../services/locationService";
-
 
 const useMobilityData = (userId) => {
 
-  const [safeLocations,setSafeLocations] = useState([]);
+    const [safeLocations, setSafeLocations] = useState([]);
 
-  const [location, setLocation] = useState(null);
+    const [location, setLocation] = useState(null);
 
-  const [history, setHistory] = useState([]);
+    const [history, setHistory] = useState([]);
 
-  const [prediction, setPrediction] = useState(null);
+    const [prediction, setPrediction] = useState(null);
 
-  const [alerts, setAlerts] = useState([]);
+    const [alerts, setAlerts] = useState([]);
 
-  const [user, setUser] = useState(null);
+    const [user, setUser] = useState(null);
 
+    const [movement, setMovement] = useState(null);
 
+    const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  const [error, setError] = useState(null);
 
+    const fetchDashboardData = useCallback(async () => {
 
-const [movement, setMovement] = useState(null);
+        if (!userId) return;
 
-  const fetchDashboardData = useCallback(async () => {
 
+        try {
 
-    if (!userId) return;
+            setLoading(true);
 
+            setError(null);
 
 
-    try {
+            const [
+                locationResponse,
+                historyResponse,
+                predictionResponse,
+                alertsResponse,
+                userResponse,
+                safeLocationResponse,
+                movementResponse
+            ] = await Promise.all([
 
+                getCurrentLocation(userId),
 
-      setLoading(true);
+                getLocationHistory(userId),
 
-      setError(null);
+                getPrediction(userId),
 
+                getAlerts(userId),
 
+                getUserProfile(userId),
 
-      const [
-  locationResponse,
-  historyResponse,
-  predictionResponse,
-  alertsResponse,
-  userResponse,
-  safeLocationResponse
+                getSafeLocations(userId),
 
-] = await Promise.all([
+                getMovementAnalytics(userId)
 
+            ]);
 
-  getCurrentLocation(userId),
-  getLocationHistory(userId),
-  getPrediction(userId),
-  getAlerts(userId),
-  getUserProfile(userId)
 
+            setLocation(locationResponse);
 
-]);
+            setHistory(historyResponse);
 
+            setPrediction(predictionResponse);
 
+            setAlerts(alertsResponse);
 
+            setUser(userResponse);
 
+            setSafeLocations(safeLocationResponse);
 
+            setMovement(movementResponse);
 
 
-      setLocation(locationResponse);
+        } catch (err) {
 
-      setHistory(historyResponse);
+            console.error(
+                "Dashboard data fetch failed:",
+                err
+            );
 
-      setPrediction(predictionResponse);
 
-      setAlerts(alertsResponse);
+            setError(
+                err.response?.data?.detail ||
+                err.message ||
+                "Failed to fetch dashboard data."
+            );
 
-      setUser(userResponse);
 
-      setSafeLocations(
-  safeLocationResponse
-);
+        } finally {
 
+            setLoading(false);
 
+        }
 
+    }, [userId]);
 
-    } catch (err) {
 
+    useEffect(() => {
 
-      console.error(
-        "Dashboard data fetch failed:",
-        err
-      );
+        fetchDashboardData();
 
+    }, [fetchDashboardData]);
 
-      setError(
 
-        err.response?.data?.detail ||
+    return {
 
-        err.message ||
+        location,
 
-        "Failed to fetch dashboard data."
+        history,
 
-      );
+        prediction,
 
+        alerts,
 
-    } finally {
+        safeLocations,
 
+        user,
 
-      setLoading(false);
+        movement,
 
+        loading,
 
-    }
+        error,
 
+        refetch: fetchDashboardData,
 
-  }, [userId]);
-
-
-
-
-
-  useEffect(()=>{
-
-
-    fetchDashboardData();
-
-
-  },[fetchDashboardData]);
-
-
-
-
-
-  return {
-
-
-location,
-
-history,
-
-prediction,
-
-alerts,
-
-safeLocations,
-
-user,
-
-loading,
-
-error,
-
-refetch: fetchDashboardData,
-
+    };
 
 };
-
-
-};
-
 
 
 export default useMobilityData;
+
