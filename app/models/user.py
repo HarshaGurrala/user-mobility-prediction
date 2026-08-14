@@ -46,6 +46,12 @@ class User(Base):
     )
 
 
+    profile_picture = Column(
+            String(255),
+            nullable=True
+    )
+
+
     password = Column(
         String(255),
         nullable=False
@@ -97,6 +103,13 @@ class User(Base):
         default=False
     )
 
+    device_id = Column(
+    String(255),
+    nullable=True,
+    unique=True
+)
+
+    
 
 
     # User's emergency contacts

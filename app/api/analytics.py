@@ -6,6 +6,9 @@ from app.dependencies.auth import get_current_user
 
 from app.models.user import User
 
+from app.services.guardian_service import (
+    get_guardian_user_details,
+)
 
 
 from app.services.analytics_service import (
@@ -218,33 +221,54 @@ def safe_zone_analytics(
 # ======================================================
 # Movement Analytics
 # ======================================================
-
 @router.get("/movement/{user_id}")
 def movement_analytics(
-    user_id:int,
-    db:Session = Depends(get_db),
-    current_user:User = Depends(get_current_user)
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
 
-    if current_user.id != user_id:
+    # Normal user can access their own analytics
+    if current_user.id == user_id:
 
-        raise HTTPException(
-            status_code=403,
-            detail="Unauthorized"
+        return {
+            "user_id": user_id,
+            "movement": get_movement_analytics(
+                db,
+                user_id
+            )
+        }
+
+
+    # Guardian can access connected user
+    if current_user.role == "GUARDIAN":
+
+        result = get_guardian_user_details(
+            db=db,
+            guardian_id=current_user.id,
+            user_id=user_id
         )
 
+        if not result:
 
-    return {
+            raise HTTPException(
+                status_code=404,
+                detail="User not connected with guardian"
+            )
 
-        "user_id":user_id,
+        return {
+            "user_id": user_id,
+            "movement": get_movement_analytics(
+                db,
+                user_id
+            )
+        }
 
-        "movement":
-        get_movement_analytics(
-            db,
-            user_id
-        )
 
-    }
+    raise HTTPException(
+        status_code=403,
+        detail="Unauthorized"
+    )
 
 @router.get("/family-movement")
 def family_movement(

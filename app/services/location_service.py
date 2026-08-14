@@ -18,18 +18,22 @@ def add_location(
     location: LocationCreate
 ):
 
-    address = get_location_name(
-    location.latitude,
-    location.longitude
-)
+    address = (
+        location.address
+        if location.address
+        else get_location_name(
+            location.latitude,
+            location.longitude
+        )
+    )
 
     new_location = Location(
-    user_id=user_id,
-    latitude=location.latitude,
-    longitude=location.longitude,
-    accuracy=location.accuracy,
-    address=address
-)
+        user_id=user_id,
+        latitude=location.latitude,
+        longitude=location.longitude,
+        accuracy=location.accuracy,
+        address=address
+    )
 
     db.add(new_location)
 
@@ -38,11 +42,11 @@ def add_location(
     db.refresh(new_location)
 
     update_prediction_result(
-    db=db,
-    user_id=user_id,
-    latitude=location.latitude,
-    longitude=location.longitude
-)
+        db=db,
+        user_id=user_id,
+        latitude=location.latitude,
+        longitude=location.longitude
+    )
 
     # Automatically check whether the location
     # is inside a safe zone after saving it.
@@ -50,7 +54,8 @@ def add_location(
         db=db,
         user_id=user_id,
         latitude=location.latitude,
-        longitude=location.longitude
+        longitude=location.longitude,
+        address=address
     )
 
     return {

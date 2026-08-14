@@ -47,7 +47,7 @@ def user_alerts(
 
 
 
-@router.get("/guardian/{guardian_id}")
+@router.get("/guardian/{guardian_id}/alerts")
 def guardian_alerts(
     guardian_id: int,
     db: Session = Depends(get_db)

@@ -17,10 +17,9 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-
-    email: EmailStr
-
+    email: str
     password: str
+    device_id: str
 
 
 class ChangePasswordRequest(BaseModel):
@@ -54,5 +53,14 @@ class UserResponse(BaseModel):
 
     safe_path_id: str
 
+    profile_picture: Optional[str] = None
+
+    is_online: bool = False
+
     class Config:
         from_attributes = True
+
+
+
+
+

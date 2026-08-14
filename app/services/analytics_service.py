@@ -446,10 +446,19 @@ def get_safe_zone_analytics(
             zones
     }
 
+
 def get_movement_analytics(
-    db,
-    user_id
+    db: Session,
+    user_id: int
 ):
+    """
+    Real movement analytics for one user.
+
+    Daily   -> 00, 02, 04 ... 24
+    Weekly  -> Mon ... Sun for CURRENT week
+    Monthly -> Jan ... Dec for CURRENT year
+    Yearly  -> all years available in database
+    """
 
     locations = (
         db.query(Location)
@@ -462,77 +471,249 @@ def get_movement_analytics(
         .all()
     )
 
+    now = datetime.now()
 
-    result = {}
+    # =====================================================
+    # DAILY
+    # =====================================================
 
+    daily_values = {}
 
-    previous = None
+    for hour in range(0, 25, 2):
+        daily_values[f"{hour:02d}"] = 0.0
 
+    for i in range(1, len(locations)):
 
-    for loc in locations:
+        previous = locations[i - 1]
+        current = locations[i]
 
+        # Only today's locations
+        if current.timestamp.date() != now.date():
+            continue
 
-        day = loc.timestamp.strftime("%a")
+        distance = calculate_distance(
+            previous.latitude,
+            previous.longitude,
+            current.latitude,
+            current.longitude
+        ) / 1000
 
+        # Put movement into 2-hour bucket
+        hour = current.timestamp.hour
 
-        if day not in result:
+        bucket = (hour // 2) * 2
 
-            result[day] = 0
+        bucket_key = f"{bucket:02d}"
 
+        daily_values[bucket_key] += distance
 
-
-        if previous:
-
-
-            lat1 = radians(previous.latitude)
-            lon1 = radians(previous.longitude)
-
-            lat2 = radians(loc.latitude)
-            lon2 = radians(loc.longitude)
-
-
-            dlat = lat2-lat1
-            dlon = lon2-lon1
-
-
-            a = (
-                sin(dlat/2)**2
-                +
-                cos(lat1)
-                *
-                cos(lat2)
-                *
-                sin(dlon/2)**2
-            )
-
-
-            c = 2 * atan2(
-                sqrt(a),
-                sqrt(1-a)
-            )
-
-
-            distance = 6371 * c
-
-
-            result[day] += distance
-
-
-
-        previous = loc
-
-
-
-    return [
-
+    daily = [
         {
-            "day":day,
-            "distance":round(distance,2)
+            "time": hour,
+            "distance": round(distance, 2)
         }
-
-        for day,distance in result.items()
-
+        for hour, distance in daily_values.items()
     ]
+
+
+    # =====================================================
+    # WEEKLY
+    # CURRENT WEEK: MONDAY -> SUNDAY
+    # =====================================================
+
+    monday = (
+        now -
+        timedelta(
+            days=now.weekday()
+        )
+    ).date()
+
+    sunday = monday + timedelta(days=6)
+
+    week_days = [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+    ]
+
+    weekly_values = {
+        day: 0.0
+        for day in week_days
+    }
+
+    for i in range(1, len(locations)):
+
+        previous = locations[i - 1]
+        current = locations[i]
+
+        current_date = current.timestamp.date()
+
+        # Current week only
+        if not (
+            monday <= current_date <= sunday
+        ):
+            continue
+
+        distance = calculate_distance(
+            previous.latitude,
+            previous.longitude,
+            current.latitude,
+            current.longitude
+        ) / 1000
+
+        day_name = current.timestamp.strftime("%a")
+
+        weekly_values[day_name] += distance
+
+    weekly = [
+        {
+            "time": day,
+            "distance": round(
+                weekly_values[day],
+                2
+            )
+        }
+        for day in week_days
+    ]
+
+
+    # =====================================================
+    # MONTHLY
+    # CURRENT YEAR: JAN -> DEC
+    # =====================================================
+
+    month_names = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+    ]
+
+    monthly_values = {
+        month: 0.0
+        for month in month_names
+    }
+
+    for i in range(1, len(locations)):
+
+        previous = locations[i - 1]
+        current = locations[i]
+
+        if current.timestamp.year != now.year:
+            continue
+
+        distance = calculate_distance(
+            previous.latitude,
+            previous.longitude,
+            current.latitude,
+            current.longitude
+        ) / 1000
+
+        month_name = current.timestamp.strftime("%b")
+
+        monthly_values[month_name] += distance
+
+    monthly = [
+        {
+            "time": month,
+            "distance": round(
+                monthly_values[month],
+                2
+            )
+        }
+        for month in month_names
+    ]
+
+
+    # =====================================================
+    # YEARLY
+    # =====================================================
+
+    years = set()
+
+    for location in locations:
+        years.add(
+            location.timestamp.year
+        )
+
+    # If no historical data
+    if not years:
+        years.add(now.year)
+
+    min_year = min(years)
+    max_year = max(
+        max(years),
+        now.year
+    )
+
+    yearly_values = {
+        year: 0.0
+        for year in range(
+            min_year,
+            max_year + 1
+        )
+    }
+
+    for i in range(1, len(locations)):
+
+        previous = locations[i - 1]
+        current = locations[i]
+
+        distance = calculate_distance(
+            previous.latitude,
+            previous.longitude,
+            current.latitude,
+            current.longitude
+        ) / 1000
+
+        year = current.timestamp.year
+
+        if year not in yearly_values:
+            yearly_values[year] = 0.0
+
+        yearly_values[year] += distance
+
+    yearly = [
+        {
+            "time": str(year),
+            "distance": round(
+                yearly_values[year],
+                2
+            )
+        }
+        for year in sorted(
+            yearly_values.keys()
+        )
+    ]
+
+
+    # =====================================================
+    # FINAL RESPONSE
+    # =====================================================
+
+    return {
+        "user_id": user_id,
+
+        "daily": daily,
+
+        "weekly": weekly,
+
+        "monthly": monthly,
+
+        "yearly": yearly
+    }
 
 
 

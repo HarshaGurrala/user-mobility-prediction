@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.database import Base, engine
+from app.models.notification import Notification
+from app.models.location_alert import LocationAlert
 from app.database import base
 
 Base.metadata.create_all(bind=engine)
@@ -18,9 +20,19 @@ from app.api.guardian import router as guardian_router
 from app.api.safety_history import router as safety_history_router
 from app.api.safety_status import router as safety_status_router
 from app.api.analytics import router as analytics_router
+
+from app.api.location_alert import router as location_alert_router
+from app.api.notification import router as notification_router
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI(
     title="User Mobility Prediction API",
     version="1.0.0"
+)
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads"
 )
 
 
@@ -63,11 +75,14 @@ app.include_router(location_router)
 app.include_router(alert_router)
 
 app.include_router(prediction_router)
+app.include_router(location_alert_router)
 
 # Contains:
 # /dashboard/{guardian_id}
 # /user-dashboard/me
 app.include_router(dashboard_router)
+
+app.include_router(notification_router)
 
 app.include_router(users_router)
 
