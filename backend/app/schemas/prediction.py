@@ -9,4 +9,4 @@ class PredictionResponse(BaseModel):
     confidence: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -15,7 +15,7 @@ object RetrofitClient {
 
 
     const val BASE_URL =
-        "https://worrisome-cataract-tannery.ngrok-free.dev/"
+    "https://user-mobility-prediction.onrender.com/"
 
 
     private lateinit var tokenManager: TokenManager

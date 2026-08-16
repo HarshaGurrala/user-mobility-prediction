@@ -50,7 +50,7 @@ def create_password_reset(
 
     # Your frontend/reset page URL
     reset_link = (
-        "https://worrisome-cataract-tannery.ngrok-free.dev"
+        "https://user-mobility-prediction.onrender.com"
         "/auth/reset-password-link"
         f"?token={token}"
     )
