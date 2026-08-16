@@ -29,3 +29,6 @@ uploads/
 # Python tools
 .pytest_cache/
 .mypy_cache/
+
+# Local database backups
+*.sql
