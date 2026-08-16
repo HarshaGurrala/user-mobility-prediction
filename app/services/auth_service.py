@@ -228,7 +228,16 @@ def authenticate_user(
     )
 
     return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": user
+    "access_token": token,
+    "token_type": "bearer",
+    "user": {
+        "id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "role": user.role,
+        "safe_path_id": user.safe_path_id,
+        "profile_picture": user.profile_picture,
+        "is_online": user.is_online,
     }
+}
