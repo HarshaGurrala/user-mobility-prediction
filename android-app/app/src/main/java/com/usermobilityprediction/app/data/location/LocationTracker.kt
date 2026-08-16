@@ -49,9 +49,8 @@ package com.usermobilityprediction.app.data.location
                 .create()
                 .apply {
 
-                    interval = 5000
-
-                    fastestInterval = 5000
+                    interval = 60000
+                    fastestInterval = 60000
 
                     priority =
                         Priority.PRIORITY_HIGH_ACCURACY
