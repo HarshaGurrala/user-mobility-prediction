@@ -19,10 +19,6 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = ""
 
 
-    # TWILIO_ACCOUNT_SID: "[REDACTED_TWILIO_SID]"
-    # TWILIO_AUTH_TOKEN: "[REDACTED_TWILIO_AUTH_TOKEN]"
-    # TWILIO_PHONE_NUMBER: "[REDACTED_TWILIO_PHONE_NUMBER]"
-
 
     class Config:
         env_file = ".env"

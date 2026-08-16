@@ -8,7 +8,6 @@ from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.models.emergency_contact import EmergencyContact
 from app.models.user_guardian_relationship import UserGuardianRelationship
-from app.utils.sos_sms import send_sos_sms
 from app.services.notification_service import create_notification
 from app.schemas.sos import SOSRequest
 from app.utils.sos_email import send_sos_email
@@ -396,41 +395,6 @@ def trigger_sos(
 
                 email_failed += 1
 
-        # ==============================================
-        # SMS
-        # ==============================================
-
-        if contact.phone_number:
-
-            try:
-
-                phone = contact.phone_number.strip()
-
-                # Convert Indian number to +91 format
-                if phone.startswith("0"):
-                    phone = "+91" + phone[1:]
-
-                elif len(phone) == 10:
-                    phone = "+91" + phone
-
-                send_sos_sms(
-                    recipient_phone=phone,
-                    user_name=user_name,
-                    latitude=request.latitude,
-                    longitude=request.longitude,
-                    sos_message=request.message
-                )
-
-                sms_sent += 1
-
-            except Exception as e:
-
-                print(
-                    f"SOS SMS failed for "
-                    f"{contact.phone_number}: {e}"
-                )
-
-                sms_failed += 1
 
 
     if email_sent == 0 and sms_sent == 0:
