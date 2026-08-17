@@ -97,27 +97,27 @@ function Login(){
             );
 
             const detail =
-                err.response?.data?.detail;
+    err.response?.data?.detail;
 
-            if (typeof detail === "string") {
+if (typeof detail === "string") {
 
-                setError(detail);
+    setError(detail);
 
-            }
-            else if (Array.isArray(detail)) {
+}
+else if (Array.isArray(detail)) {
 
-                setError(
-                    detail
-                        .map(item => item.msg || "Invalid input")
-                        .join(", ")
-                );
+    setError(
+        detail
+            .map(item => item.msg || "Invalid input")
+            .join(", ")
+    );
 
-            }
-            else {
+}
+else {
 
-                setError("Login failed");
+    setError("Login failed");
 
-            }
+}
 
         }
 
