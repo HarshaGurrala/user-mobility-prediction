@@ -23,13 +23,15 @@ const [token,setToken] = useState(
 const register = async(data) => {
 
     const response = await api.post(
-        "/auth/guardian-register",
-        data
+        "/auth/register",
+        {
+            ...data,
+            role: "GUARDIAN"
+        }
     );
 
     return response.data;
 };
-
 
 
 
