@@ -89,23 +89,35 @@ function Login(){
 
         }
 
-        catch(err){
-
+                catch(err){
 
             console.log(
                 "LOGIN ERROR:",
                 err
             );
 
+            const detail =
+                err.response?.data?.detail;
 
-            setError(
+            if (typeof detail === "string") {
 
-                err.response?.data?.detail ||
+                setError(detail);
 
-                "Login failed"
+            }
+            else if (Array.isArray(detail)) {
 
-            );
+                setError(
+                    detail
+                        .map(item => item.msg || "Invalid input")
+                        .join(", ")
+                );
 
+            }
+            else {
+
+                setError("Login failed");
+
+            }
 
         }
 
