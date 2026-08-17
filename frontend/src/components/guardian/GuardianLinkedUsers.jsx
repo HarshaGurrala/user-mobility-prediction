@@ -111,7 +111,7 @@ export default function GuardianLinkedUsers() {
 
 
         // Backend relative upload path
-        return `https://safepath-guardian.onrender.com${user.profile_picture}`;
+        return `https://user-mobility-prediction.onrender.com${user.profile_picture}`;
 
     };
 

@@ -3,7 +3,7 @@ import axios from "axios";
 
 const api = axios.create({
 
-    baseURL:"https://safepath-guardian.onrender.com",
+    baseURL:"https://user-mobility-prediction.onrender.com",
 
     headers:{
         "Content-Type":"application/json"

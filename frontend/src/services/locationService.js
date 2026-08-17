@@ -2,7 +2,7 @@
 import axios from "axios";
 
 
-const API_URL = "https://safepath-guardian.onrender.com";
+const API_URL = "https://user-mobility-prediction.onrender.com";
 
 
 const api = axios.create({

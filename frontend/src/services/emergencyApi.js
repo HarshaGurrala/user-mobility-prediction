@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-    baseURL: "https://safepath-guardian.onrender.com"
+    baseURL: "https://user-mobility-prediction.onrender.com"
 });
 
 API.interceptors.request.use(
