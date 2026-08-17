@@ -17,7 +17,14 @@ class BootReceiver : BroadcastReceiver() {
 
             val tokenManager = TokenManager(context)
 
-            if (tokenManager.getUserId() != -1) {
+           if (
+    tokenManager.isLoggedIn() &&
+    tokenManager.getUserId() != -1 &&
+    tokenManager.getUserRole().equals(
+        "USER",
+        ignoreCase = true
+    )
+) {
 
                 val serviceIntent = Intent(
                     context,
