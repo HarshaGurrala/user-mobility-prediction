@@ -56,6 +56,7 @@ def register(
     db: Session = Depends(get_db)
 
 ):
+    
 
     new_user = create_user(
 
@@ -73,6 +74,41 @@ def register(
 
             detail="Email already registered"
 
+        )
+
+    return new_user
+
+
+
+# ============================================================
+# GUARDIAN WEBSITE REGISTER
+# ============================================================
+
+@router.post(
+    "/guardian-register",
+    response_model=UserResponse
+)
+def guardian_register(
+
+    user: UserCreate,
+
+    db: Session = Depends(get_db)
+
+):
+
+    # Website accounts are ALWAYS GUARDIANS
+    user.role = "GUARDIAN"
+
+    new_user = create_user(
+        db,
+        user
+    )
+
+    if new_user is None:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
         )
 
     return new_user
