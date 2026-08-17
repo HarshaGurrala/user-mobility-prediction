@@ -30,7 +30,7 @@ export default function DashboardHeader({
     user?.profile_picture
         ? user.profile_picture.startsWith("http")
             ? user.profile_picture
-            : `http://127.0.0.1:8000${user.profile_picture}`
+            : `https://user-mobility-prediction.onrender.com${user.profile_picture}`
         : null;
 
 

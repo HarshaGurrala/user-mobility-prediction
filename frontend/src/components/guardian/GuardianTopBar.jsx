@@ -106,7 +106,7 @@ export default function GuardianTopBar() {
         guardian?.profile_picture
             ? guardian.profile_picture.startsWith("http")
                 ? guardian.profile_picture
-                : `http://127.0.0.1:8000${guardian.profile_picture}`
+                : `https://user-mobility-prediction.onrender.com${guardian.profile_picture}`
             : null;
 
 
@@ -172,7 +172,7 @@ export default function GuardianTopBar() {
 
             const response =
                 await axios.post(
-                    "http://127.0.0.1:8000/users/me/profile-picture",
+                    "https://user-mobility-prediction.onrender.com/users/me/profile-picture",
                     formData,
                     {
                         headers: {
