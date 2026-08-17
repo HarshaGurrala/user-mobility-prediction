@@ -42,66 +42,46 @@ return response.data;
 
 
 
-const login = async(email,password)=>{
+const login = async(email, password) => {
 
+    const response = await api.post(
+        "/auth/login",
+        {
+            email,
+            password,
+            device_id: "guardian-web"
+        }
+    );
 
-const response = await api.post(
+    const accessToken =
+        response.data.access_token;
 
-    "/auth/login",
+    const user =
+        response.data.user;
 
-    {
+    localStorage.setItem(
+        "token",
+        accessToken
+    );
 
-        email,
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
 
-        password
+    localStorage.setItem(
+        "userId",
+        user.id
+    );
 
-    }
+    localStorage.setItem(
+        "role",
+        user.role
+    );
 
-);
+    setToken(accessToken);
 
-
-
-
-const accessToken =
-response.data.access_token;
-
-
-const user =
-response.data.user;
-
-
-localStorage.setItem(
-"token",
-accessToken
-);
-
-
-localStorage.setItem(
-"user",
-JSON.stringify(user)
-);
-
-
-localStorage.setItem(
-"userId",
-user.id
-);
-
-
-localStorage.setItem(
-"role",
-user.role
-);
-
-
-setToken(accessToken);
-
-
-
-
-return response.data;
-
-
+    return response.data;
 };
 
 
