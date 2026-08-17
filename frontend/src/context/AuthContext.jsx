@@ -20,22 +20,17 @@ const [token,setToken] = useState(
 
 
 
-const register = async(data)=>{
+const register = async(data) => {
 
+    const response = await api.post(
+        "/auth/guardian-register",
+        data
+    );
 
-const response = await api.post(
-
-    "/auth/register",
-
-    data
-
-);
-
-
-return response.data;
-
-
+    return response.data;
 };
+
+
 
 
 
