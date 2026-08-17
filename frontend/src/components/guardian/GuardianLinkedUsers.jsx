@@ -111,7 +111,7 @@ export default function GuardianLinkedUsers() {
 
 
         // Backend relative upload path
-        return `http://127.0.0.1:8000${user.profile_picture}`;
+        return `https://safepath-guardian.onrender.com${user.profile_picture}`;
 
     };
 
