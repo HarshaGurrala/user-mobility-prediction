@@ -56,3 +56,5 @@ urllib3==2.6.3
 uvicorn==0.39.0
 
 python-multipart==0.0.20
+
+twilio==9.7.0
