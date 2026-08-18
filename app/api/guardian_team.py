@@ -82,10 +82,9 @@ def get_team(
         )
 
     return get_guardian_team(
-    db=db,
-    guardian_id=current_user.id,
-    guardian_email=current_user.email,
-)
+        db=db,
+        guardian_id=current_user.id,
+    )
 
 # ============================================================
 # CREATE TEAM PERSON
