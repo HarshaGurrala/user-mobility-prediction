@@ -46,17 +46,10 @@ def can_edit_team_person(
     team_person,
 ) -> bool:
 
-    # Only Guardian accounts can edit
     if current_user.role != "GUARDIAN":
         return False
 
-    # Team person must have an email
-    if not team_person.email:
-        return False
-
-    # Logged-in Guardian email must match
-    # the team person's email
-    if current_user.email.lower().strip() != team_person.email.lower().strip():
+    if team_person.guardian_id != current_user.id:
         return False
 
     return True
