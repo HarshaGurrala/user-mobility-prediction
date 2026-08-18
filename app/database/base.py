@@ -17,3 +17,4 @@ from app.models.user_guardian_relationship import UserGuardianRelationship
 
 from app.models.safety_history import SafetyHistory
 from app.models.user_safety_state import UserSafetyState
+from app.models.guardian_team import GuardianTeam

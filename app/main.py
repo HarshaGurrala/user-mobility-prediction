@@ -17,6 +17,7 @@ from app.api.prediction import router as prediction_router
 from app.api.dashboard import router as dashboard_router
 from app.api.users import router as users_router
 from app.api.guardian import router as guardian_router
+from app.api.guardian_team import router as guardian_team_router
 from app.api.safety_history import router as safety_history_router
 from app.api.safety_status import router as safety_status_router
 from app.api.analytics import router as analytics_router
@@ -89,6 +90,7 @@ app.include_router(users_router)
 
 # Guardian request/relationship APIs
 app.include_router(guardian_router)
+app.include_router(guardian_team_router)
 
 app.include_router(
     safety_history_router

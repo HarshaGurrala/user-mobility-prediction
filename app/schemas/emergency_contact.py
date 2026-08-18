@@ -18,7 +18,7 @@ class EmergencyContactResponse(BaseModel):
     relationship_type: str
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class EmergencyContactUpdate(BaseModel):
     name: str

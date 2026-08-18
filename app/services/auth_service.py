@@ -53,7 +53,7 @@ def create_user(
         email=user_data.email,
         phone_number=user_data.phone_number,
         password=hashed_password,
-        role=user_data.role.upper(),
+        role=user_data.role,
         safe_path_id=generate_safe_path_id()
     )
 
@@ -122,29 +122,10 @@ def authenticate_user(
     # ONE DEVICE LOGIN CHECK
     # ==================================================
 
+    # ==================================================
+# ONE DEVICE LOGIN CHECK - USER ONLY
 # ==================================================
-# GUARDIAN DEVICE ACCOUNT CHECK
-# ONE GUARDIAN ACCOUNT PER DEVICE
-# ==================================================
 
-    if user.role == "GUARDIAN" and device_id is not None:
-
-        existing_guardian = (
-            db.query(User)
-            .filter(
-                User.device_id == device_id,
-                User.role == "GUARDIAN",
-                User.id != user.id
-            )
-            .first()
-        )
-
-        if existing_guardian:
-
-            raise HTTPException(
-                status_code=403,
-                detail="This device is already associated with another Guardian account."
-            )
     # ==================================================
 # ONE DEVICE LOGIN CHECK
 # ONLY FOR REAL ANDROID LOGIN
@@ -162,61 +143,22 @@ def authenticate_user(
             detail="This account is already logged in on another device."
         )
 
-
-
     # ==================================================
-# SAVE LOGIN STATUS
-# ==================================================
-
-        # ==================================================
-    # DEVICE LOGIN RULES
+    # SAVE CURRENT DEVICE - USER ONLY
     # ==================================================
 
     if user.role == "USER":
 
-        # --------------------------------------------------
-        # USER: ONE DEVICE ONLY
-        # --------------------------------------------------
-
-        if (
-            device_id is not None
-            and user.device_id is not None
-            and user.device_id != device_id
-        ):
-
-            raise HTTPException(
-                status_code=403,
-                detail="This account is already logged in on another device."
-            )
-
-        # Store device ID ONLY for USER
         user.device_id = device_id
 
-        # USER is online
         user.is_online = True
 
+        db.commit()
 
-    elif user.role == "GUARDIAN":
-
-        # --------------------------------------------------
-        # GUARDIAN: MULTIPLE DEVICES ALLOWED
-        # --------------------------------------------------
-
-        # Never store Guardian device ID
-        user.device_id = None
-
-        # Guardian is online
-        user.is_online = True
+        db.refresh(user)
 
 
-    # Save login status
-    db.commit()
-    db.refresh(user)
-
-
-  
-
-        # ==================================================
+    # ==================================================
     # CREATE JWT
     # ==================================================
 
@@ -228,16 +170,7 @@ def authenticate_user(
     )
 
     return {
-    "access_token": token,
-    "token_type": "bearer",
-    "user": {
-        "id": user.id,
-        "full_name": user.full_name,
-        "email": user.email,
-        "phone_number": user.phone_number,
-        "role": user.role,
-        "safe_path_id": user.safe_path_id,
-        "profile_picture": user.profile_picture,
-        "is_online": user.is_online,
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user
     }
-}
