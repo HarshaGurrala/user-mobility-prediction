@@ -4,35 +4,16 @@ from sqlalchemy.orm import Session
 
 from app.models.guardian_team import GuardianTeam
 
-
 def get_guardian_team(
     db: Session,
     guardian_id: int,
-    guardian_email: Optional[str] = None,
 ):
-    query = db.query(GuardianTeam).filter(
-        GuardianTeam.guardian_id == guardian_id
-    )
-
-    if guardian_email:
-        query = db.query(GuardianTeam).filter(
-            (GuardianTeam.guardian_id == guardian_id)
-            |
-            (
-                GuardianTeam.email.isnot(None)
-                &
-                (
-                    GuardianTeam.email.ilike(
-                        guardian_email.strip()
-                    )
-                )
-            )
-        )
-
     return (
-        query
+        db.query(GuardianTeam)
+        .filter(
+            GuardianTeam.guardian_id == guardian_id
+        )
         .order_by(
-            GuardianTeam.person_type,
             GuardianTeam.id
         )
         .all()
