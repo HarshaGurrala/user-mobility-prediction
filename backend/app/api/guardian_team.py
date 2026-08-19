@@ -31,11 +31,30 @@ from app.services.guardian_team_service import (
 )
 
 
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "..",
+    )
+)
+
+UPLOADS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "uploads",
+)
+
+TEAM_UPLOAD_DIR = os.path.join(
+    UPLOADS_DIR,
+    "team",
+)
+
+
 router = APIRouter(
     prefix="/guardian/team",
     tags=["Guardian Team"],
 )
-
 
 # ============================================================
 # HELPER — CHECK EDIT PERMISSION

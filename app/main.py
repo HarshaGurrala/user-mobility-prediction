@@ -1,3 +1,23 @@
+import os
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+    )
+)
+
+UPLOADS_DIR = os.path.join(
+    PROJECT_ROOT,
+    "uploads",
+)
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory=UPLOADS_DIR),
+    name="uploads",
+)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,7 +37,7 @@ from app.api.prediction import router as prediction_router
 from app.api.dashboard import router as dashboard_router
 from app.api.users import router as users_router
 from app.api.guardian import router as guardian_router
-from app.api.guardian_team import router as guardian_team_router
+from backend.app.api.guardian_team import router as guardian_team_router
 from app.api.safety_history import router as safety_history_router
 from app.api.safety_status import router as safety_status_router
 from app.api.analytics import router as analytics_router
@@ -30,9 +50,19 @@ app = FastAPI(
     title="User Mobility Prediction API",
     version="1.0.0"
 )
+
+UPLOADS_DIR = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "uploads",
+    )
+)
+
 app.mount(
     "/uploads",
-    StaticFiles(directory="uploads"),
+    StaticFiles(directory=UPLOADS_DIR),
     name="uploads"
 )
 

@@ -250,3 +250,76 @@ export const getNextPrediction = async (userId) => {
 
     return response.data;
 };
+
+
+
+// ==================================================
+// GUARDIAN TEAM
+// ==================================================
+
+export const getGuardianTeam = async () => {
+    const response = await API.get(
+        "/guardian/team"
+    );
+
+    return response.data;
+};
+
+export const createGuardianTeamPerson = async (data) => {
+    const response = await API.post(
+        "/guardian/team",
+        data
+    );
+
+    return response.data;
+};
+
+export const updateGuardianTeamPerson = async (
+    teamId,
+    data
+) => {
+    const response = await API.put(
+        `/guardian/team/${teamId}`,
+        data
+    );
+
+    return response.data;
+};
+
+export const deleteGuardianTeamPerson = async (
+    teamId
+) => {
+    const response = await API.delete(
+        `/guardian/team/${teamId}`
+    );
+
+    return response.data;
+};
+
+export const uploadGuardianTeamPhoto = async (
+    teamId,
+    file
+) => {
+    const formData = new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+    const response = await API.post(
+        `/guardian/team/${teamId}/photo`,
+        formData
+    );
+
+    return response.data;
+};
+
+export const updateGuardianTeamMember = async (teamId, data) => {
+    const response = await API.put(
+        `/guardian/team/${teamId}`,
+        data
+    );
+
+    return response.data;
+};
