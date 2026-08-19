@@ -1,97 +1,126 @@
-
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import GuestRoute from "./routes/GuestRoute";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Landing from "./pages/Landing/Landing";
 
+import AITAMMovingText from "./components/intro/AITAMMovingText";
+
 import GuardianHome from "./pages/guardian/GuardianHome";
-import Dashboard from "./pages/Dashboard";import GuestRoute from "./routes/GuestRoute";
+import Dashboard from "./pages/Dashboard";
 import GuardianFamilyMap from "./pages/guardian/GuardianFamilyMap";
 
+export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
 
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
 
-export default function App(){
+          {/* =====================================================
+              MAIN PAGE
+              AITAM INTRO → 15 SECONDS → LANDING
+          ====================================================== */}
 
-return (
+          <Route
+            path="/"
+            element={
+              showIntro ? (
+                <AITAMMovingText
+                  onComplete={() => setShowIntro(false)}
+                />
+              ) : (
+                <Landing />
+              )
+            }
+          />
 
-<AuthProvider>
+          {/* =====================================================
+              AITAM PAGE
+          ====================================================== */}
 
-<BrowserRouter>
+          <Route
+            path="/aitam"
+            element={<AITAMMovingText />}
+          />
 
-<Routes>
+          {/* =====================================================
+              LOGIN
+          ====================================================== */}
 
+          <Route
+            path="/login"
+            element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            }
+          />
 
-<Route
-path="/"
-element={<Landing />}
-/>
+          {/* =====================================================
+              REGISTER
+          ====================================================== */}
 
+          <Route
+            path="/register"
+            element={<Register />}
+          />
 
-<Route
-    path="/login"
-    element={
-        <GuestRoute>
-            <Login />
-        </GuestRoute>
-    }
-/>
+          {/* =====================================================
+              GUARDIAN HOME
+          ====================================================== */}
 
-<Route
-path="/register"
-element={<Register />}
-/>
+          <Route
+            path="/guardian"
+            element={
+              <ProtectedRoute role="GUARDIAN">
+                <GuardianHome />
+              </ProtectedRoute>
+            }
+          />
 
+          {/* =====================================================
+              USER DASHBOARD
+          ====================================================== */}
 
-<Route
-path="/guardian/"
-element={
-<ProtectedRoute role="GUARDIAN">
-<GuardianHome/>
-</ProtectedRoute>
-}
-/>
+          <Route
+            path="/dashboard/:userId"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
+          {/* =====================================================
+              GUARDIAN FAMILY MAP
+          ====================================================== */}
 
+          <Route
+            path="/guardian/family-map"
+            element={
+              <GuardianFamilyMap />
+            }
+          />
 
+          {/* =====================================================
+              UNKNOWN ROUTE
+          ====================================================== */}
 
-<Route
-path="/dashboard/:userId"
-element={
-<ProtectedRoute>
-<Dashboard/>
-</ProtectedRoute>
-}
-/>
+          <Route
+            path="*"
+            element={<Landing />}
+          />
 
-onClick={() =>
- navigate(`/dashboard/${user.id}`)
-}
-
-<Route
-path="*"
-element={<Landing />}
-/>
-
-
-
-<Route
- path="/guardian/family-map"
- element={<GuardianFamilyMap />}
-/>
-
-
-
-</Routes>
-
-</BrowserRouter>
-
-</AuthProvider>
-
-);
-
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
