@@ -1,22 +1,4 @@
 import os
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-    )
-)
-
-UPLOADS_DIR = os.path.join(
-    PROJECT_ROOT,
-    "uploads",
-)
-
-app.mount(
-    "/uploads",
-    StaticFiles(directory=UPLOADS_DIR),
-    name="uploads",
-)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,7 +36,6 @@ app = FastAPI(
 UPLOADS_DIR = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
-        "..",
         "..",
         "uploads",
     )

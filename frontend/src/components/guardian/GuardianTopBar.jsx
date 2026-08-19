@@ -423,11 +423,11 @@ export default function GuardianTopBar() {
     const hodMembers = [
         {
             id: "hod-1",
-            person_type: "HOD",
-            name: "Dr. HOD Name",
-            email: "hod@college.com",
-            role: "Head of Department",
-            details: "Computer Science and Engineering",
+            person_type: "",
+            name: "Dr.B.Ramesh Naidu",
+            email: "ramesshnaiidu5@gmail.com",
+            role: "Head of Department of IT",
+            details: "Information Technology",
             image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKSZrraDYcfuXI23SGP_zbHedHjdCVOou7I7j6Wk3Y3g&s=10",
         },
     ];
@@ -437,10 +437,10 @@ export default function GuardianTopBar() {
         {
             id: "mentor-1",
             person_type: "MENTOR",
-            name: "Dr. Mentor Name",
-            email: "mentor@college.com",
+            name: "Sri.Tatarao Vana",
+            email: "vanatatarao@gmail.com",
             role: "Project Mentor",
-            details: "Project Guide",
+            details: "Information Technology",
             image: "https://adityatekkali.edu.in/Files/images/A5INT00T72.jpg",
         },
     ];
