@@ -46,6 +46,19 @@ def can_edit_team_person(
     team_person,
 ) -> bool:
 
+    print("========== TEAM EDIT DEBUG ==========")
+    print("current_user.id:", current_user.id)
+    print("current_user.email:", current_user.email)
+    print("current_user.role:", current_user.role)
+    print("team_person.id:", team_person.id)
+    print("team_person.person_type:", team_person.person_type)
+    print("team_person.guardian_id:", team_person.guardian_id)
+    print(
+        "guardian IDs equal:",
+        team_person.guardian_id == current_user.id
+    )
+    print("=====================================")
+
     if current_user.role != "GUARDIAN":
         return False
 
