@@ -106,7 +106,7 @@ export default function GuardianTopBar() {
         guardian?.profile_picture
             ? guardian.profile_picture.startsWith("http")
                 ? guardian.profile_picture
-                : `https://user-mobility-prediction.onrender.com${guardian.profile_picture}`
+              : `https://user-mobility-prediction.onrender.com${guardian.profile_picture}`
             : null;
 
 
