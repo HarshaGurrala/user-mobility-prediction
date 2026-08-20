@@ -20,8 +20,8 @@ class SOSViewModel : ViewModel() {
     val message: StateFlow<String?> = _message
 
     fun triggerSOS(
-        latitude: Double,
-        longitude: Double
+        latitude: Double?,
+        longitude: Double?
     ) {
 
         if (_loading.value) return

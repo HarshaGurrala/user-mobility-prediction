@@ -8,9 +8,14 @@ import Footer from "../../components/landing/Footer";
 import SectionSections from "../../components/landing/SectionSections";
 import FullPageDecorations from "../../components/landing/FullPageDecorations";
 
+
+
+
+
 export default function Landing() {
   return (
     <>
+    
       <FullPageDecorations />
       <Navbar />
       <Hero />

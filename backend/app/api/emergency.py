@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -35,6 +35,62 @@ router = APIRouter(
     prefix="/emergency",
     tags=["Emergency Contacts"]
 )
+
+
+def _send_sos_contact_notifications(
+    contact_email,
+    contact_phone_number,
+    user_name,
+    latitude,
+    longitude,
+    sos_message
+):
+
+    if contact_email:
+
+        try:
+
+            send_sos_email(
+                recipient_email=contact_email,
+                user_name=user_name,
+                latitude=latitude,
+                longitude=longitude,
+                sos_message=sos_message
+            )
+
+        except Exception as e:
+
+            print(
+                f"SOS email failed for "
+                f"{contact_email}: {e}"
+            )
+
+    if contact_phone_number:
+
+        try:
+
+            phone = contact_phone_number.strip()
+
+            if phone.startswith("0"):
+                phone = "+91" + phone[1:]
+
+            elif len(phone) == 10:
+                phone = "+91" + phone
+
+            send_sos_sms(
+                recipient_phone=phone,
+                user_name=user_name,
+                latitude=latitude,
+                longitude=longitude,
+                sos_message=sos_message
+            )
+
+        except Exception as e:
+
+            print(
+                f"SOS SMS failed for "
+                f"{contact_phone_number}: {e}"
+            )
 
 
 # ==========================================================
@@ -268,6 +324,7 @@ def remove_contact(
 @router.post("/sos")
 def trigger_sos(
     request: SOSRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -283,11 +340,6 @@ def trigger_sos(
             detail="No emergency contacts found"
         )
 
-
-    # =====================================================
-    # CREATE SOS NOTIFICATION FOR USER
-    # =====================================================
-
     existing_notification = (
         db.query(Notification)
         .filter(
@@ -299,7 +351,6 @@ def trigger_sos(
     )
 
     if not existing_notification:
-
         create_notification(
             db=db,
             user_id=current_user.id,
@@ -307,11 +358,6 @@ def trigger_sos(
             title="🚨 SOS Alert",
             message="Emergency SOS alert has been triggered."
         )
-
-
-    # =====================================================
-    # CREATE SOS ALERT FOR GUARDIANS
-    # =====================================================
 
     guardians = (
         db.query(UserGuardianRelationship)
@@ -323,7 +369,6 @@ def trigger_sos(
     )
 
     for guardian in guardians:
-
         existing_alert = (
             db.query(Alert)
             .filter(
@@ -338,22 +383,15 @@ def trigger_sos(
         if existing_alert:
             continue
 
-        alert = AlertCreate(
-            user_id=current_user.id,
-            guardian_id=guardian.guardian_id,
-            alert_type="SOS",
-            message="Emergency SOS alert has been triggered."
-        )
-
         create_alert(
             db,
-            alert
+            AlertCreate(
+                user_id=current_user.id,
+                guardian_id=guardian.guardian_id,
+                alert_type="SOS",
+                message="Emergency SOS alert has been triggered."
+            )
         )
-
-
-    # =====================================================
-    # SEND SOS EMAIL / SMS
-    # =====================================================
 
     user_name = (
         getattr(current_user, "name", None)
@@ -361,92 +399,21 @@ def trigger_sos(
         or current_user.email
     )
 
-    email_sent = 0
-    email_failed = 0
-
-    sms_sent = 0
-    sms_failed = 0
-
     for contact in contacts:
-
-        # ==============================================
-        # EMAIL
-        # ==============================================
-
-        if contact.email:
-
-            try:
-
-                send_sos_email(
-                    recipient_email=contact.email,
-                    user_name=user_name,
-                    latitude=request.latitude,
-                    longitude=request.longitude,
-                    sos_message=request.message
-                )
-
-                email_sent += 1
-
-            except Exception as e:
-
-                print(
-                    f"SOS email failed for "
-                    f"{contact.email}: {e}"
-                )
-
-                email_failed += 1
-
-        # ==============================================
-        # SMS
-        # ==============================================
-
-        if contact.phone_number:
-
-            try:
-
-                phone = contact.phone_number.strip()
-
-                # Convert Indian number to +91 format
-                if phone.startswith("0"):
-                    phone = "+91" + phone[1:]
-
-                elif len(phone) == 10:
-                    phone = "+91" + phone
-
-                send_sos_sms(
-                    recipient_phone=phone,
-                    user_name=user_name,
-                    latitude=request.latitude,
-                    longitude=request.longitude,
-                    sos_message=request.message
-                )
-
-                sms_sent += 1
-
-            except Exception as e:
-
-                print(
-                    f"SOS SMS failed for "
-                    f"{contact.phone_number}: {e}"
-                )
-
-                sms_failed += 1
-
-
-    if email_sent == 0 and sms_sent == 0:
-
-        raise HTTPException(
-            status_code=400,
-            detail="No emergency contacts could be notified"
+        background_tasks.add_task(
+            _send_sos_contact_notifications,
+            contact.email,
+            contact.phone_number,
+            user_name,
+            request.latitude,
+            request.longitude,
+            request.message
         )
-
 
     return {
         "success": True,
-        "message": "SOS alert sent successfully",
-        "email_sent": email_sent,
-        "email_failed": email_failed,
-        "sms_sent": sms_sent,
-        "sms_failed": sms_failed
+        "message": "SOS alert queued successfully",
+        "email_queued": sum(bool(contact.email) for contact in contacts),
+        "sms_queued": sum(bool(contact.phone_number) for contact in contacts)
     }
 
