@@ -1,9 +1,7 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
 class SOSRequest(BaseModel):
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    latitude: float
+    longitude: float
     message: str = "Emergency! I need help."

@@ -292,11 +292,11 @@ private fun EmergencyCard(
         ),
         onClick = {
 
-            if (!loading) {
+            if (currentLocation != null && !loading) {
 
                 viewModel.triggerSOS(
-                    latitude = currentLocation?.latitude,
-                    longitude = currentLocation?.longitude
+                    latitude = currentLocation.latitude,
+                    longitude = currentLocation.longitude
                 )
 
             }

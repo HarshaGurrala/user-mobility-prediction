@@ -1,6 +1,5 @@
 import smtplib
 from email.message import EmailMessage
-from typing import Optional
 
 from app.core.config import settings
 
@@ -10,36 +9,12 @@ from app.core.config import settings
 def send_sos_email(
     recipient_email: str,
     user_name: str,
-    latitude: Optional[float],
-    longitude: Optional[float],
+    latitude: float,
+    longitude: float,
     sos_message: str
 ):
 
-    has_location = latitude is not None and longitude is not None
-    location_text = (
-        f"Latitude: {latitude}\nLongitude: {longitude}"
-        if has_location
-        else "Location unavailable: GPS coordinates were not received."
-    )
-    maps_link = (
-        f"https://www.google.com/maps?q={latitude},{longitude}"
-        if has_location
-        else None
-    )
-    maps_link_html = (
-        f'''<a href="{maps_link}"
-               style="display:inline-block;
-                      padding:12px 24px;
-                      background-color:#DC2626;
-                      color:white;
-                      text-decoration:none;
-                      border-radius:6px;
-                      font-weight:bold;">
-                📍 View User's Current Location
-            </a>'''
-        if maps_link
-        else "Current location is unavailable."
-    )
+    maps_link = f"https://www.google.com/maps?q={latitude},{longitude}"
 
     message = EmailMessage()
 
@@ -73,10 +48,14 @@ and may require immediate assistance.
 
 CURRENT LOCATION
 ------------------------------
-{location_text}
+Latitude:
+{latitude}
+
+Longitude:
+{longitude}
 
 Google Maps Location:
-{maps_link or "Unavailable"}
+{maps_link}
 
 Please open the Google Maps location to view
 the user's current position.
@@ -157,11 +136,23 @@ Please do not reply to this email.
             <h3>📍 Current Location</h3>
 
             <p>
-                {location_text.replace(chr(10), "<br>")}
+                <strong>Latitude:</strong> {latitude}<br>
+                <strong>Longitude:</strong> {longitude}
             </p>
 
             <p>
-                {maps_link_html}
+                <a href="{maps_link}"
+                   style="
+                       display:inline-block;
+                       padding:12px 24px;
+                       background-color:#DC2626;
+                       color:white;
+                       text-decoration:none;
+                       border-radius:6px;
+                       font-weight:bold;
+                   ">
+                    📍 View User's Current Location
+                </a>
             </p>
 
             <h3>⚠️ Important</h3>
@@ -237,8 +228,7 @@ Please do not reply to this email.
 
     with smtplib.SMTP(
         settings.SMTP_HOST,
-        settings.SMTP_PORT,
-        timeout=15
+        settings.SMTP_PORT
     ) as server:
 
         server.starttls()
@@ -440,8 +430,7 @@ def send_unknown_location_email(
 
         with smtplib.SMTP(
             settings.SMTP_HOST,
-            settings.SMTP_PORT,
-            timeout=15
+            settings.SMTP_PORT
         ) as server:
 
             server.starttls()

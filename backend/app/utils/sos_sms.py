@@ -1,5 +1,4 @@
 from twilio.rest import Client
-from typing import Optional
 
 from app.core.config import settings
 
@@ -7,18 +6,10 @@ from app.core.config import settings
 def send_sos_sms(
     recipient_phone: str,
     user_name: str,
-    latitude: Optional[float],
-    longitude: Optional[float],
+    latitude: float,
+    longitude: float,
     sos_message: str
 ):
-
-    if not all((
-        settings.TWILIO_ACCOUNT_SID,
-        settings.TWILIO_AUTH_TOKEN,
-        settings.TWILIO_PHONE_NUMBER
-    )):
-        print("SOS SMS skipped: Twilio is not configured")
-        return None
 
     maps_link = (
         f"https://www.google.com/maps?q={latitude},{longitude}"
