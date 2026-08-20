@@ -18,10 +18,9 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM_EMAIL: str = ""
 
-
-    # TWILIO_ACCOUNT_SID: "[REDACTED_TWILIO_SID]"
-    # TWILIO_AUTH_TOKEN: "[REDACTED_TWILIO_AUTH_TOKEN]"
-    # TWILIO_PHONE_NUMBER: "[REDACTED_TWILIO_PHONE_NUMBER]"
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_PHONE_NUMBER: str = ""
 
 
     class Config:
